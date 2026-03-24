@@ -1,0 +1,345 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		7A4D0E5B2F8C100100000001 /* BreadPorosityApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000101 /* BreadPorosityApp.swift */; };
+		7A4D0E5B2F8C100100000002 /* AppContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000102 /* AppContainerView.swift */; };
+		7A4D0E5B2F8C100100000003 /* AnalysisView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000103 /* AnalysisView.swift */; };
+		7A4D0E5B2F8C100100000004 /* AnalysisViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000104 /* AnalysisViewModel.swift */; };
+		7A4D0E5B2F8C100100000005 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000105 /* ImagePicker.swift */; };
+		7A4D0E5B2F8C100100000006 /* AnalysisModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000106 /* AnalysisModels.swift */; };
+		7A4D0E5B2F8C100100000007 /* BreadAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000107 /* BreadAnalyzer.swift */; };
+		7A4D0E5B2F8C100100000008 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000108 /* Assets.xcassets */; };
+		7A4D0E5B2F8C100100000009 /* ImageTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C10010000010B /* ImageTypes.swift */; };
+		7A4D0E5B2F8C10010000000A /* ImageProcessingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C10010000010C /* ImageProcessingPipeline.swift */; };
+		7A4D0E5B2F8C10010000000B /* MaskRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C10010000010D /* MaskRenderer.swift */; };
+		7A4D0E5B2F8C10010000000C /* ROIEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C10010000010E /* ROIEditorView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		7A4D0E5B2F8C100100000101 /* BreadPorosityApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadPorosityApp.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C100100000102 /* AppContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainerView.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C100100000103 /* AnalysisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisView.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C100100000104 /* AnalysisViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisViewModel.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C100100000105 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C100100000106 /* AnalysisModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisModels.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C100100000107 /* BreadAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadAnalyzer.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C100100000108 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7A4D0E5B2F8C100100000109 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7A4D0E5B2F8C10010000010A /* BreadPorosity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BreadPorosity.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7A4D0E5B2F8C10010000010B /* ImageTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageTypes.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C10010000010C /* ImageProcessingPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageProcessingPipeline.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C10010000010D /* MaskRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaskRenderer.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C10010000010E /* ROIEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ROIEditorView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7A4D0E5B2F8C100100000201 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		7A4D0E5B2F8C100100000301 = {
+			isa = PBXGroup;
+			children = (
+				7A4D0E5B2F8C100100000302 /* BreadPorosity */,
+				7A4D0E5B2F8C100100000309 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7A4D0E5B2F8C100100000302 /* BreadPorosity */ = {
+			isa = PBXGroup;
+			children = (
+				7A4D0E5B2F8C100100000303 /* App */,
+				7A4D0E5B2F8C100100000304 /* Features */,
+				7A4D0E5B2F8C100100000306 /* Domain */,
+				7A4D0E5B2F8C100100000307 /* Processing */,
+				7A4D0E5B2F8C100100000308 /* Resources */,
+			);
+			path = BreadPorosity;
+			sourceTree = "<group>";
+		};
+		7A4D0E5B2F8C100100000303 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				7A4D0E5B2F8C100100000101 /* BreadPorosityApp.swift */,
+				7A4D0E5B2F8C100100000102 /* AppContainerView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		7A4D0E5B2F8C100100000304 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				7A4D0E5B2F8C100100000305 /* Analysis */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		7A4D0E5B2F8C100100000305 /* Analysis */ = {
+			isa = PBXGroup;
+			children = (
+				7A4D0E5B2F8C100100000103 /* AnalysisView.swift */,
+				7A4D0E5B2F8C100100000104 /* AnalysisViewModel.swift */,
+				7A4D0E5B2F8C100100000105 /* ImagePicker.swift */,
+				7A4D0E5B2F8C10010000010E /* ROIEditorView.swift */,
+			);
+			path = Analysis;
+			sourceTree = "<group>";
+		};
+		7A4D0E5B2F8C100100000306 /* Domain */ = {
+			isa = PBXGroup;
+			children = (
+				7A4D0E5B2F8C100100000106 /* AnalysisModels.swift */,
+			);
+			path = Domain;
+			sourceTree = "<group>";
+		};
+		7A4D0E5B2F8C100100000307 /* Processing */ = {
+			isa = PBXGroup;
+			children = (
+				7A4D0E5B2F8C100100000107 /* BreadAnalyzer.swift */,
+				7A4D0E5B2F8C10010000010B /* ImageTypes.swift */,
+				7A4D0E5B2F8C10010000010C /* ImageProcessingPipeline.swift */,
+				7A4D0E5B2F8C10010000010D /* MaskRenderer.swift */,
+			);
+			path = Processing;
+			sourceTree = "<group>";
+		};
+		7A4D0E5B2F8C100100000308 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				7A4D0E5B2F8C100100000108 /* Assets.xcassets */,
+				7A4D0E5B2F8C100100000109 /* Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		7A4D0E5B2F8C100100000309 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7A4D0E5B2F8C10010000010A /* BreadPorosity.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7A4D0E5B2F8C100100000401 /* BreadPorosity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7A4D0E5B2F8C100100000503 /* Build configuration list for PBXNativeTarget "BreadPorosity" */;
+			buildPhases = (
+				7A4D0E5B2F8C100100000202 /* Sources */,
+				7A4D0E5B2F8C100100000201 /* Frameworks */,
+				7A4D0E5B2F8C100100000203 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BreadPorosity;
+			productName = BreadPorosity;
+			productReference = 7A4D0E5B2F8C10010000010A /* BreadPorosity.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7A4D0E5B2F8C100100000402 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					7A4D0E5B2F8C100100000401 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = 7A4D0E5B2F8C100100000501 /* Build configuration list for PBXProject "BreadPorosity" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 7A4D0E5B2F8C100100000301;
+			productRefGroup = 7A4D0E5B2F8C100100000309 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				7A4D0E5B2F8C100100000401 /* BreadPorosity */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7A4D0E5B2F8C100100000203 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7A4D0E5B2F8C100100000008 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		7A4D0E5B2F8C100100000202 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7A4D0E5B2F8C100100000001 /* BreadPorosityApp.swift in Sources */,
+				7A4D0E5B2F8C100100000002 /* AppContainerView.swift in Sources */,
+				7A4D0E5B2F8C100100000003 /* AnalysisView.swift in Sources */,
+				7A4D0E5B2F8C100100000004 /* AnalysisViewModel.swift in Sources */,
+				7A4D0E5B2F8C100100000005 /* ImagePicker.swift in Sources */,
+				7A4D0E5B2F8C100100000006 /* AnalysisModels.swift in Sources */,
+				7A4D0E5B2F8C100100000007 /* BreadAnalyzer.swift in Sources */,
+				7A4D0E5B2F8C100100000009 /* ImageTypes.swift in Sources */,
+				7A4D0E5B2F8C10010000000A /* ImageProcessingPipeline.swift in Sources */,
+				7A4D0E5B2F8C10010000000B /* MaskRenderer.swift in Sources */,
+				7A4D0E5B2F8C10010000000C /* ROIEditorView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		7A4D0E5B2F8C100100000601 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+			};
+			name = Debug;
+		};
+		7A4D0E5B2F8C100100000602 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		7A4D0E5B2F8C100100000603 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"BreadPorosity/Resources/Preview Content\"";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = BreadPorosity/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.BreadPorosity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		7A4D0E5B2F8C100100000604 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"BreadPorosity/Resources/Preview Content\"";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = BreadPorosity/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.BreadPorosity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		7A4D0E5B2F8C100100000501 /* Build configuration list for PBXProject "BreadPorosity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7A4D0E5B2F8C100100000601 /* Debug */,
+				7A4D0E5B2F8C100100000602 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7A4D0E5B2F8C100100000503 /* Build configuration list for PBXNativeTarget "BreadPorosity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7A4D0E5B2F8C100100000603 /* Debug */,
+				7A4D0E5B2F8C100100000604 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 7A4D0E5B2F8C100100000402 /* Project object */;
+}
