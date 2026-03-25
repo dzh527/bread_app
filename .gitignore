@@ -1,0 +1,16 @@
+.DS_Store
+
+# Xcode user state
+xcuserdata/
+*.xcuserstate
+
+# Xcode build outputs
+DerivedData/
+.derivedData/
+build/
+
+# Swift Package Manager
+.build/
+
+# Workspace user data
+*.xcworkspace/xcuserdata/

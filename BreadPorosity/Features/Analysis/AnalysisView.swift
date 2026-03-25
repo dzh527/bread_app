@@ -94,7 +94,7 @@ struct AnalysisView: View {
 
             if let image = viewModel.selectedImage {
                 if viewModel.parameters.roiMode == .manualCrop {
-                    ROIEditorView(image: image, normalizedRect: roiRectBinding)
+                    ROIEditorView(normalizedRect: roiRectBinding, image: image)
                         .frame(height: 320)
                         .allowsHitTesting(!viewModel.isAnalyzing)
 

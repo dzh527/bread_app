@@ -19,7 +19,21 @@
 		7A4D0E5B2F8C10010000000A /* ImageProcessingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C10010000010C /* ImageProcessingPipeline.swift */; };
 		7A4D0E5B2F8C10010000000B /* MaskRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C10010000010D /* MaskRenderer.swift */; };
 		7A4D0E5B2F8C10010000000C /* ROIEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C10010000010E /* ROIEditorView.swift */; };
+		7A4D0E5B2F8C10010000000D /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000112 /* XCTest.framework */; };
+		7A4D0E5B2F8C10010000000E /* AnalysisImageFactoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C10010000010F /* AnalysisImageFactoryTests.swift */; };
+		7A4D0E5B2F8C10010000000F /* ImageProcessingPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000110 /* ImageProcessingPipelineTests.swift */; };
+		7A4D0E5B2F8C100100000010 /* BreadAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000111 /* BreadAnalyzerTests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		7A4D0E5B2F8C100100000701 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7A4D0E5B2F8C100100000403 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7A4D0E5B2F8C100100000401;
+			remoteInfo = BreadPorosity;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		7A4D0E5B2F8C100100000101 /* BreadPorosityApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadPorosityApp.swift; sourceTree = "<group>"; };
@@ -36,6 +50,11 @@
 		7A4D0E5B2F8C10010000010C /* ImageProcessingPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageProcessingPipeline.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C10010000010D /* MaskRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaskRenderer.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C10010000010E /* ROIEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ROIEditorView.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C10010000010F /* AnalysisImageFactoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisImageFactoryTests.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C100100000110 /* ImageProcessingPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageProcessingPipelineTests.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C100100000111 /* BreadAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadAnalyzerTests.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C100100000112 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
+		7A4D0E5B2F8C100100000113 /* BreadPorosityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BreadPorosityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,6 +65,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7A4D0E5B2F8C100100000204 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7A4D0E5B2F8C10010000000D /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -53,6 +80,7 @@
 			isa = PBXGroup;
 			children = (
 				7A4D0E5B2F8C100100000302 /* BreadPorosity */,
+				7A4D0E5B2F8C10010000030A /* BreadPorosityTests */,
 				7A4D0E5B2F8C100100000309 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -129,8 +157,19 @@
 			isa = PBXGroup;
 			children = (
 				7A4D0E5B2F8C10010000010A /* BreadPorosity.app */,
+				7A4D0E5B2F8C100100000113 /* BreadPorosityTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		7A4D0E5B2F8C10010000030A /* BreadPorosityTests */ = {
+			isa = PBXGroup;
+			children = (
+				7A4D0E5B2F8C10010000010F /* AnalysisImageFactoryTests.swift */,
+				7A4D0E5B2F8C100100000110 /* ImageProcessingPipelineTests.swift */,
+				7A4D0E5B2F8C100100000111 /* BreadAnalyzerTests.swift */,
+			);
+			path = BreadPorosityTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -153,10 +192,28 @@
 			productReference = 7A4D0E5B2F8C10010000010A /* BreadPorosity.app */;
 			productType = "com.apple.product-type.application";
 		};
+		7A4D0E5B2F8C100100000402 /* BreadPorosityTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7A4D0E5B2F8C100100000504 /* Build configuration list for PBXNativeTarget "BreadPorosityTests" */;
+			buildPhases = (
+				7A4D0E5B2F8C100100000205 /* Sources */,
+				7A4D0E5B2F8C100100000204 /* Frameworks */,
+				7A4D0E5B2F8C100100000206 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7A4D0E5B2F8C100100000702 /* PBXTargetDependency */,
+			);
+			name = BreadPorosityTests;
+			productName = BreadPorosityTests;
+			productReference = 7A4D0E5B2F8C100100000113 /* BreadPorosityTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		7A4D0E5B2F8C100100000402 /* Project object */ = {
+		7A4D0E5B2F8C100100000403 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
@@ -165,6 +222,10 @@
 				TargetAttributes = {
 					7A4D0E5B2F8C100100000401 = {
 						CreatedOnToolsVersion = 16.0;
+					};
+					7A4D0E5B2F8C100100000402 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = 7A4D0E5B2F8C100100000401;
 					};
 				};
 			};
@@ -182,6 +243,7 @@
 			projectRoot = "";
 			targets = (
 				7A4D0E5B2F8C100100000401 /* BreadPorosity */,
+				7A4D0E5B2F8C100100000402 /* BreadPorosityTests */,
 			);
 		};
 /* End PBXProject section */
@@ -192,6 +254,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				7A4D0E5B2F8C100100000008 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7A4D0E5B2F8C100100000206 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -216,7 +285,25 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7A4D0E5B2F8C100100000205 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7A4D0E5B2F8C10010000000E /* AnalysisImageFactoryTests.swift in Sources */,
+				7A4D0E5B2F8C10010000000F /* ImageProcessingPipelineTests.swift in Sources */,
+				7A4D0E5B2F8C100100000010 /* BreadAnalyzerTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		7A4D0E5B2F8C100100000702 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7A4D0E5B2F8C100100000401 /* BreadPorosity */;
+			targetProxy = 7A4D0E5B2F8C100100000701 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		7A4D0E5B2F8C100100000601 /* Debug */ = {
@@ -274,6 +361,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"BreadPorosity/Resources/Preview Content\"";
+				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = BreadPorosity/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -318,6 +406,56 @@
 			};
 			name = Release;
 		};
+		7A4D0E5B2F8C100100000605 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.BreadPorosityTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BreadPorosity.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BreadPorosity";
+			};
+			name = Debug;
+		};
+		7A4D0E5B2F8C100100000606 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.BreadPorosityTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BreadPorosity.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BreadPorosity";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -339,7 +477,16 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		7A4D0E5B2F8C100100000504 /* Build configuration list for PBXNativeTarget "BreadPorosityTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7A4D0E5B2F8C100100000605 /* Debug */,
+				7A4D0E5B2F8C100100000606 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 7A4D0E5B2F8C100100000402 /* Project object */;
+	rootObject = 7A4D0E5B2F8C100100000403 /* Project object */;
 }
