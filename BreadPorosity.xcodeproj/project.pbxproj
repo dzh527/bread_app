@@ -23,6 +23,14 @@
 		7A4D0E5B2F8C10010000000E /* AnalysisImageFactoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C10010000010F /* AnalysisImageFactoryTests.swift */; };
 		7A4D0E5B2F8C10010000000F /* ImageProcessingPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000110 /* ImageProcessingPipelineTests.swift */; };
 		7A4D0E5B2F8C100100000010 /* BreadAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000111 /* BreadAnalyzerTests.swift */; };
+		7A4D0E5B2F8C100100000011 /* GridAnalysisModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000114 /* GridAnalysisModels.swift */; };
+		7A4D0E5B2F8C100100000012 /* GridSlicer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000115 /* GridSlicer.swift */; };
+		7A4D0E5B2F8C100100000013 /* GridOverlayRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000116 /* GridOverlayRenderer.swift */; };
+		7A4D0E5B2F8C100100000014 /* GridAnalysisViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000117 /* GridAnalysisViewModel.swift */; };
+		7A4D0E5B2F8C100100000015 /* GridAnalysisView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000118 /* GridAnalysisView.swift */; };
+		7A4D0E5B2F8C100100000016 /* GridCellDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000119 /* GridCellDetailView.swift */; };
+		7A4D0E5B2F8C100100000017 /* GridSlicerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C10010000011A /* GridSlicerTests.swift */; };
+		7A4D0E5B2F8C100100000018 /* GridAnalysisTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C10010000011B /* GridAnalysisTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,6 +63,14 @@
 		7A4D0E5B2F8C100100000111 /* BreadAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadAnalyzerTests.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C100100000112 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
 		7A4D0E5B2F8C100100000113 /* BreadPorosityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BreadPorosityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7A4D0E5B2F8C100100000114 /* GridAnalysisModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridAnalysisModels.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C100100000115 /* GridSlicer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridSlicer.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C100100000116 /* GridOverlayRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridOverlayRenderer.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C100100000117 /* GridAnalysisViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridAnalysisViewModel.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C100100000118 /* GridAnalysisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridAnalysisView.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C100100000119 /* GridCellDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridCellDetailView.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C10010000011A /* GridSlicerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridSlicerTests.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C10010000011B /* GridAnalysisTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridAnalysisTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -110,8 +126,19 @@
 			isa = PBXGroup;
 			children = (
 				7A4D0E5B2F8C100100000305 /* Analysis */,
+				7A4D0E5B2F8C10010000030B /* GridAnalysis */,
 			);
 			path = Features;
+			sourceTree = "<group>";
+		};
+		7A4D0E5B2F8C10010000030B /* GridAnalysis */ = {
+			isa = PBXGroup;
+			children = (
+				7A4D0E5B2F8C100100000117 /* GridAnalysisViewModel.swift */,
+				7A4D0E5B2F8C100100000118 /* GridAnalysisView.swift */,
+				7A4D0E5B2F8C100100000119 /* GridCellDetailView.swift */,
+			);
+			path = GridAnalysis;
 			sourceTree = "<group>";
 		};
 		7A4D0E5B2F8C100100000305 /* Analysis */ = {
@@ -129,6 +156,7 @@
 			isa = PBXGroup;
 			children = (
 				7A4D0E5B2F8C100100000106 /* AnalysisModels.swift */,
+				7A4D0E5B2F8C100100000114 /* GridAnalysisModels.swift */,
 			);
 			path = Domain;
 			sourceTree = "<group>";
@@ -140,6 +168,8 @@
 				7A4D0E5B2F8C10010000010B /* ImageTypes.swift */,
 				7A4D0E5B2F8C10010000010C /* ImageProcessingPipeline.swift */,
 				7A4D0E5B2F8C10010000010D /* MaskRenderer.swift */,
+				7A4D0E5B2F8C100100000115 /* GridSlicer.swift */,
+				7A4D0E5B2F8C100100000116 /* GridOverlayRenderer.swift */,
 			);
 			path = Processing;
 			sourceTree = "<group>";
@@ -168,6 +198,8 @@
 				7A4D0E5B2F8C10010000010F /* AnalysisImageFactoryTests.swift */,
 				7A4D0E5B2F8C100100000110 /* ImageProcessingPipelineTests.swift */,
 				7A4D0E5B2F8C100100000111 /* BreadAnalyzerTests.swift */,
+				7A4D0E5B2F8C10010000011A /* GridSlicerTests.swift */,
+				7A4D0E5B2F8C10010000011B /* GridAnalysisTests.swift */,
 			);
 			path = BreadPorosityTests;
 			sourceTree = "<group>";
@@ -282,6 +314,12 @@
 				7A4D0E5B2F8C10010000000A /* ImageProcessingPipeline.swift in Sources */,
 				7A4D0E5B2F8C10010000000B /* MaskRenderer.swift in Sources */,
 				7A4D0E5B2F8C10010000000C /* ROIEditorView.swift in Sources */,
+				7A4D0E5B2F8C100100000011 /* GridAnalysisModels.swift in Sources */,
+				7A4D0E5B2F8C100100000012 /* GridSlicer.swift in Sources */,
+				7A4D0E5B2F8C100100000013 /* GridOverlayRenderer.swift in Sources */,
+				7A4D0E5B2F8C100100000014 /* GridAnalysisViewModel.swift in Sources */,
+				7A4D0E5B2F8C100100000015 /* GridAnalysisView.swift in Sources */,
+				7A4D0E5B2F8C100100000016 /* GridCellDetailView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -292,6 +330,8 @@
 				7A4D0E5B2F8C10010000000E /* AnalysisImageFactoryTests.swift in Sources */,
 				7A4D0E5B2F8C10010000000F /* ImageProcessingPipelineTests.swift in Sources */,
 				7A4D0E5B2F8C100100000010 /* BreadAnalyzerTests.swift in Sources */,
+				7A4D0E5B2F8C100100000017 /* GridSlicerTests.swift in Sources */,
+				7A4D0E5B2F8C100100000018 /* GridAnalysisTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -104,6 +104,28 @@ struct GrayscaleImage {
     func integralImage() -> IntegralImage {
         IntegralImage(source: self)
     }
+
+    func cropped(to rect: CGRect) -> GrayscaleImage {
+        let originX = max(0, min(Int(rect.origin.x), width - 1))
+        let originY = max(0, min(Int(rect.origin.y), height - 1))
+        let cropWidth = min(Int(rect.width), width - originX)
+        let cropHeight = min(Int(rect.height), height - originY)
+
+        guard cropWidth > 0, cropHeight > 0 else {
+            return GrayscaleImage(width: 1, height: 1, pixels: [0])
+        }
+
+        var croppedPixels = [UInt8](repeating: 0, count: cropWidth * cropHeight)
+        for row in 0..<cropHeight {
+            let sourceStart = ((originY + row) * width) + originX
+            let destStart = row * cropWidth
+            for col in 0..<cropWidth {
+                croppedPixels[destStart + col] = pixels[sourceStart + col]
+            }
+        }
+
+        return GrayscaleImage(width: cropWidth, height: cropHeight, pixels: croppedPixels)
+    }
 }
 
 struct BinaryMask {
