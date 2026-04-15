@@ -18,6 +18,21 @@ final class AnalysisImageFactoryTests: XCTestCase {
         XCTAssertLessThan(Int(input.grayscale[30, 40]), 80)
     }
 
+    func testMakeInputClampsOutOfBoundsROIToImageBounds() throws {
+        let image = makeHalfToneImage(width: 120, height: 80)
+
+        let input = try AnalysisImageFactory.makeInput(
+            from: image,
+            maxDimension: 120,
+            roiRectNormalized: CGRect(x: 0.9, y: -0.2, width: 0.25, height: 1.4)
+        )
+
+        XCTAssertEqual(input.grayscale.width, 30)
+        XCTAssertEqual(input.grayscale.height, 80)
+        XCTAssertGreaterThan(Int(input.grayscale[5, 5]), 180)
+        XCTAssertGreaterThan(Int(input.grayscale[20, 40]), 180)
+    }
+
     func testMakeInputRejectsTooSmallROI() {
         let image = makeHalfToneImage(width: 120, height: 80)
 
@@ -32,6 +47,15 @@ final class AnalysisImageFactoryTests: XCTestCase {
                 return XCTFail("Expected roiTooSmall, got \(error)")
             }
         }
+    }
+
+    func testMakeInputScalesLongestDimensionBeforeCropping() throws {
+        let image = makeHalfToneImage(width: 240, height: 120)
+
+        let input = try AnalysisImageFactory.makeInput(from: image, maxDimension: 120)
+
+        XCTAssertEqual(input.grayscale.width, 120)
+        XCTAssertEqual(input.grayscale.height, 60)
     }
 
     private func makeHalfToneImage(width: Int, height: Int) -> UIImage {

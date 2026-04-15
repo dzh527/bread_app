@@ -25,6 +25,39 @@ final class BreadAnalyzerTests: XCTestCase {
         XCTAssertEqual(result.maskImage.size.height, result.overlayImage.size.height, accuracy: 0.001)
     }
 
+    func testAnalyzeManualROIReducesPorosityWhenPoreIsOutsideCrop() async throws {
+        let image = makeSyntheticBreadImage(width: 180, height: 180)
+        let analyzer = BreadAnalyzer()
+
+        let fullResult = try await analyzer.analyze(
+            image: image,
+            parameters: AnalysisParameters(
+                thresholdMode: .otsu,
+                thresholdBias: 0,
+                minPoreArea: 80,
+                morphologyKernelSize: 3,
+                roiMode: .fullImage,
+                roiRectNormalized: nil
+            )
+        )
+
+        let croppedResult = try await analyzer.analyze(
+            image: image,
+            parameters: AnalysisParameters(
+                thresholdMode: .otsu,
+                thresholdBias: 0,
+                minPoreArea: 80,
+                morphologyKernelSize: 3,
+                roiMode: .manualCrop,
+                roiRectNormalized: CGRect(x: 0, y: 0, width: 0.25, height: 0.25)
+            )
+        )
+
+        XCTAssertGreaterThan(fullResult.porosity, 0.02)
+        XCTAssertEqual(croppedResult.poreCount, 0)
+        XCTAssertEqual(croppedResult.porosity, 0, accuracy: 0.0001)
+    }
+
     private func makeSyntheticBreadImage(width: Int, height: Int) -> UIImage {
         let size = CGSize(width: width, height: height)
         let format = UIGraphicsImageRendererFormat()

@@ -78,6 +78,30 @@ final class GridSlicerTests: XCTestCase {
         XCTAssertNil(roi)
     }
 
+    func testDetectSliceROIPrefersLargestBrightComponent() throws {
+        var pixels = [UInt8](repeating: 25, count: 120 * 120)
+
+        for y in 10..<35 {
+            for x in 10..<35 {
+                pixels[(y * 120) + x] = 210
+            }
+        }
+
+        for y in 45..<110 {
+            for x in 50..<105 {
+                pixels[(y * 120) + x] = 210
+            }
+        }
+
+        let image = GrayscaleImage(width: 120, height: 120, pixels: pixels)
+        let roi = try XCTUnwrap(GridSlicer.detectSliceROI(in: image))
+
+        XCTAssertGreaterThan(roi.origin.x, 0.35)
+        XCTAssertGreaterThan(roi.origin.y, 0.3)
+        XCTAssertGreaterThan(roi.width, 0.4)
+        XCTAssertGreaterThan(roi.height, 0.5)
+    }
+
     func testColumnSummaryComputation() {
         let gridSpec = GridSpec(rows: 3, columns: 2)
 
@@ -118,5 +142,32 @@ final class GridSlicerTests: XCTestCase {
 
         XCTAssertEqual(summaries[1].sampleCount, 2)
         XCTAssertEqual(summaries[1].meanPorosity, 0.35, accuracy: 0.001)
+    }
+
+    func testColumnSummaryReturnsZeroesForEmptyColumn() {
+        let gridSpec = GridSpec(rows: 2, columns: 2)
+        let dummyImage = UIImage()
+        let dummyMask = UIImage()
+
+        let result = BreadAnalysisResult(
+            porosity: 0.25,
+            poreCount: 4,
+            averagePoreArea: 10,
+            maskImage: dummyMask,
+            overlayImage: dummyMask
+        )
+
+        let cellResults: [[GridCellResult?]] = [
+            [GridCellResult(cellIndex: GridCellIndex(row: 0, column: 0), cellImage: dummyImage, analysisResult: result), nil],
+            [nil, nil],
+        ]
+
+        let summaries = GridAnalysisResult.computeColumnSummaries(gridSpec: gridSpec, cellResults: cellResults)
+
+        XCTAssertEqual(summaries[0].sampleCount, 1)
+        XCTAssertEqual(summaries[0].meanPorosity, 0.25, accuracy: 0.001)
+        XCTAssertEqual(summaries[1].sampleCount, 0)
+        XCTAssertEqual(summaries[1].meanPorosity, 0)
+        XCTAssertEqual(summaries[1].stdPorosity, 0)
     }
 }

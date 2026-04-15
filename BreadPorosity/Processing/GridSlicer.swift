@@ -65,6 +65,11 @@ enum GridSlicer {
     }
 
     static func detectSliceROI(in grayscale: GrayscaleImage) -> CGRect? {
+        let intensityStats = grayscale.meanAndStandardDeviation()
+        guard intensityStats.standardDeviation >= 1 else {
+            return nil
+        }
+
         let threshold = otsuThresholdValue(grayscale)
         let width = grayscale.width
         let height = grayscale.height
