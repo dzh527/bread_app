@@ -6,6 +6,208 @@ struct ConnectedComponentSummary {
     let averageArea: Double
 }
 
+enum BackgroundRemover {
+    static func removeBackground(_ image: GrayscaleImage) -> GrayscaleImage {
+        let backgroundMask = detectBackground(image)
+        let meanBreadIntensity = computeForegroundMean(image, backgroundMask: backgroundMask)
+        let fillValue = UInt8(clamping: max(Int(meanBreadIntensity), 200))
+
+        var result = image
+        for i in 0..<image.pixelCount {
+            if backgroundMask[i] == 1 {
+                result.pixels[i] = fillValue
+            }
+        }
+        return result
+    }
+
+    private static func detectBackground(_ image: GrayscaleImage) -> [UInt8] {
+        let threshold = otsuThreshold(image)
+        let isBreadDarkerThanBackground = estimateBreadIsDarker(image, threshold: threshold)
+
+        var foreground = [UInt8](repeating: 0, count: image.pixelCount)
+        for i in 0..<image.pixelCount {
+            if isBreadDarkerThanBackground {
+                foreground[i] = image.pixels[i] <= threshold ? 1 : 0
+            } else {
+                foreground[i] = image.pixels[i] > threshold ? 1 : 0
+            }
+        }
+
+        let closingRadius = max(3, min(image.width, image.height) / 40)
+        let closed = morphologicalClose(foreground, width: image.width, height: image.height, radius: closingRadius)
+
+        var background = floodFillFromEdges(closed, width: image.width, height: image.height)
+        let erosionRadius = max(2, min(image.width, image.height) / 100)
+        background = dilateBackground(background, width: image.width, height: image.height, radius: erosionRadius)
+
+        return background
+    }
+
+    private static func otsuThreshold(_ image: GrayscaleImage) -> Int {
+        let histogram = image.histogram()
+        let totalPixels = Double(image.pixelCount)
+        var totalIntensity = 0.0
+        for (i, count) in histogram.enumerated() {
+            totalIntensity += Double(i) * Double(count)
+        }
+
+        var threshold = 0
+        var bgWeight = 0.0
+        var bgIntensity = 0.0
+        var maxVariance = -Double.infinity
+
+        for i in 0..<256 {
+            bgWeight += Double(histogram[i])
+            guard bgWeight > 0 else { continue }
+            let fgWeight = totalPixels - bgWeight
+            guard fgWeight > 0 else { break }
+
+            bgIntensity += Double(i * histogram[i])
+            let bgMean = bgIntensity / bgWeight
+            let fgMean = (totalIntensity - bgIntensity) / fgWeight
+            let delta = bgMean - fgMean
+            let variance = bgWeight * fgWeight * delta * delta
+
+            if variance > maxVariance {
+                maxVariance = variance
+                threshold = i
+            }
+        }
+        return threshold
+    }
+
+    private static func estimateBreadIsDarker(_ image: GrayscaleImage, threshold: Int) -> Bool {
+        let w = image.width
+        let h = image.height
+        let edgeMargin = max(2, min(w, h) / 20)
+        var edgeSum = 0
+        var edgeCount = 0
+
+        for y in 0..<h {
+            for x in 0..<w {
+                if x < edgeMargin || x >= w - edgeMargin || y < edgeMargin || y >= h - edgeMargin {
+                    edgeSum += Int(image[x, y])
+                    edgeCount += 1
+                }
+            }
+        }
+
+        guard edgeCount > 0 else { return true }
+        let edgeMean = Double(edgeSum) / Double(edgeCount)
+        return edgeMean > Double(threshold)
+    }
+
+    private static func morphologicalClose(_ mask: [UInt8], width: Int, height: Int, radius: Int) -> [UInt8] {
+        let dilated = dilateRaw(mask, width: width, height: height, radius: radius)
+        return erodeRaw(dilated, width: width, height: height, radius: radius)
+    }
+
+    private static func dilateRaw(_ mask: [UInt8], width: Int, height: Int, radius: Int) -> [UInt8] {
+        var output = [UInt8](repeating: 0, count: mask.count)
+        for y in 0..<height {
+            for x in 0..<width {
+                var found = false
+                let yStart = max(0, y - radius)
+                let yEnd = min(height - 1, y + radius)
+                let xStart = max(0, x - radius)
+                let xEnd = min(width - 1, x + radius)
+                for ky in yStart...yEnd {
+                    for kx in xStart...xEnd {
+                        if mask[ky * width + kx] == 1 {
+                            found = true
+                            break
+                        }
+                    }
+                    if found { break }
+                }
+                output[y * width + x] = found ? 1 : 0
+            }
+        }
+        return output
+    }
+
+    private static func erodeRaw(_ mask: [UInt8], width: Int, height: Int, radius: Int) -> [UInt8] {
+        var output = [UInt8](repeating: 0, count: mask.count)
+        for y in 0..<height {
+            for x in 0..<width {
+                var allSet = true
+                let yStart = max(0, y - radius)
+                let yEnd = min(height - 1, y + radius)
+                let xStart = max(0, x - radius)
+                let xEnd = min(width - 1, x + radius)
+                for ky in yStart...yEnd {
+                    for kx in xStart...xEnd {
+                        if mask[ky * width + kx] == 0 {
+                            allSet = false
+                            break
+                        }
+                    }
+                    if !allSet { break }
+                }
+                output[y * width + x] = allSet ? 1 : 0
+            }
+        }
+        return output
+    }
+
+    private static func floodFillFromEdges(_ foreground: [UInt8], width: Int, height: Int) -> [UInt8] {
+        var background = [UInt8](repeating: 0, count: foreground.count)
+        var queue = [Int]()
+        queue.reserveCapacity(width * 2 + height * 2)
+
+        func enqueue(_ x: Int, _ y: Int) {
+            let idx = y * width + x
+            guard foreground[idx] == 0, background[idx] == 0 else { return }
+            background[idx] = 1
+            queue.append(idx)
+        }
+
+        for x in 0..<width {
+            enqueue(x, 0)
+            enqueue(x, height - 1)
+        }
+        for y in 0..<height {
+            enqueue(0, y)
+            enqueue(width - 1, y)
+        }
+
+        var head = 0
+        let offsets = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        while head < queue.count {
+            let idx = queue[head]
+            head += 1
+            let x = idx % width
+            let y = idx / width
+
+            for (dx, dy) in offsets {
+                let nx = x + dx
+                let ny = y + dy
+                guard nx >= 0, nx < width, ny >= 0, ny < height else { continue }
+                enqueue(nx, ny)
+            }
+        }
+
+        return background
+    }
+
+    private static func dilateBackground(_ background: [UInt8], width: Int, height: Int, radius: Int) -> [UInt8] {
+        dilateRaw(background, width: width, height: height, radius: radius)
+    }
+
+    private static func computeForegroundMean(_ image: GrayscaleImage, backgroundMask: [UInt8]) -> Double {
+        var sum = 0
+        var count = 0
+        for i in 0..<image.pixelCount {
+            if backgroundMask[i] == 0 {
+                sum += Int(image.pixels[i])
+                count += 1
+            }
+        }
+        return count > 0 ? Double(sum) / Double(count) : 200
+    }
+}
+
 enum ImagePreprocessor {
     static func normalize(_ image: GrayscaleImage) -> GrayscaleImage {
         let backgroundRadius = max(10, min(image.width, image.height) / 72)

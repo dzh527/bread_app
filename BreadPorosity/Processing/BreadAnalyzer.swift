@@ -132,7 +132,8 @@ struct BreadAnalyzer: BreadAnalyzing {
             maxDimension: maxProcessingDimension,
             roiRectNormalized: parameters.roiRectNormalized
         )
-        let normalized = ImagePreprocessor.normalize(analysisInput.grayscale)
+        let backgroundRemoved = BackgroundRemover.removeBackground(analysisInput.grayscale)
+        let normalized = ImagePreprocessor.normalize(backgroundRemoved)
         let segmentedMask = Thresholding.segment(normalized, parameters: parameters)
         let cleanedMask = BinaryMorphology.clean(segmentedMask, kernelSize: parameters.morphologyKernelSize)
         let components = ConnectedComponents.filter(mask: cleanedMask, minimumArea: parameters.minPoreArea)
