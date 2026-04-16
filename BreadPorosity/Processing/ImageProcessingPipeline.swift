@@ -4,6 +4,7 @@ struct ConnectedComponentSummary {
     let filteredMask: BinaryMask
     let poreCount: Int
     let averageArea: Double
+    let poreAreaCV: Double
 }
 
 enum BackgroundRemover {
@@ -521,16 +522,30 @@ enum ConnectedComponents {
         }
 
         let averageArea: Double
+        let poreAreaCV: Double
         if retainedAreas.isEmpty {
             averageArea = 0
+            poreAreaCV = 0
         } else {
-            averageArea = Double(retainedAreas.reduce(0, +)) / Double(retainedAreas.count)
+            let count = Double(retainedAreas.count)
+            averageArea = Double(retainedAreas.reduce(0, +)) / count
+            if retainedAreas.count < 2 || averageArea < .ulpOfOne {
+                poreAreaCV = 0
+            } else {
+                var variance = 0.0
+                for area in retainedAreas {
+                    let delta = Double(area) - averageArea
+                    variance += delta * delta
+                }
+                poreAreaCV = sqrt(variance / count) / averageArea
+            }
         }
 
         return ConnectedComponentSummary(
             filteredMask: BinaryMask(width: width, height: height, pixels: retainedPixels),
             poreCount: retainedAreas.count,
-            averageArea: averageArea
+            averageArea: averageArea,
+            poreAreaCV: poreAreaCV
         )
     }
 }

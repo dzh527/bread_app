@@ -113,6 +113,7 @@ final class GridSlicerTests: XCTestCase {
                 porosity: porosity,
                 poreCount: 10,
                 averagePoreArea: 50,
+                poreAreaCV: 0,
                 maskImage: dummyMask,
                 overlayImage: dummyMask
             )
@@ -153,6 +154,7 @@ final class GridSlicerTests: XCTestCase {
             porosity: 0.25,
             poreCount: 4,
             averagePoreArea: 10,
+            poreAreaCV: 0,
             maskImage: dummyMask,
             overlayImage: dummyMask
         )

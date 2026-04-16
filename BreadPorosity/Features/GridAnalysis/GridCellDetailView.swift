@@ -22,7 +22,10 @@ struct GridCellDetailView: View {
                 metricTile(title: "Pores", value: "\(cellResult.analysisResult.poreCount)")
             }
 
-            metricTile(title: "Average Pore Area", value: cellResult.analysisResult.averagePoreAreaText)
+            HStack(spacing: 12) {
+                metricTile(title: "Avg Pore Area", value: cellResult.analysisResult.averagePoreAreaText)
+                metricTile(title: "Pore Area CV", value: cellResult.analysisResult.poreAreaCVText)
+            }
         }
         .detailCardStyle()
     }

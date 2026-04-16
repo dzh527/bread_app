@@ -287,7 +287,10 @@ struct AnalysisView: View {
                 metricTile(title: "Pores", value: "\(result.poreCount)")
             }
 
-            metricTile(title: "Average Pore Area", value: result.averagePoreAreaText)
+            HStack(spacing: 12) {
+                metricTile(title: "Avg Pore Area", value: result.averagePoreAreaText)
+                metricTile(title: "Pore Area CV", value: result.poreAreaCVText)
+            }
         }
     }
 

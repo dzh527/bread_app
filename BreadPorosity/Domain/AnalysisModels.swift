@@ -49,6 +49,7 @@ struct BreadAnalysisResult {
     let porosity: Double
     let poreCount: Int
     let averagePoreArea: Double
+    let poreAreaCV: Double
     let maskImage: UIImage
     let overlayImage: UIImage
 }
@@ -60,6 +61,10 @@ extension BreadAnalysisResult {
 
     var averagePoreAreaText: String {
         String(format: "%.1f px²", averagePoreArea)
+    }
+
+    var poreAreaCVText: String {
+        String(format: "%.2f", poreAreaCV)
     }
 }
 

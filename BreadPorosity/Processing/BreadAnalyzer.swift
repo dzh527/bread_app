@@ -145,6 +145,7 @@ struct BreadAnalyzer: BreadAnalyzing {
             porosity: porosity,
             poreCount: components.poreCount,
             averagePoreArea: components.averageArea,
+            poreAreaCV: components.poreAreaCV,
             maskImage: maskImage,
             overlayImage: overlayImage
         )
