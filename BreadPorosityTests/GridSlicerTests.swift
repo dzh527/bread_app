@@ -78,6 +78,32 @@ final class GridSlicerTests: XCTestCase {
         XCTAssertNil(roi)
     }
 
+    func testCrustTrimmedROIRemovesSliceEdges() {
+        let roi = GridSlicer.crustTrimmedROI(
+            from: CGRect(x: 0.1, y: 0.2, width: 0.8, height: 0.6),
+            imageWidth: 200,
+            imageHeight: 100
+        )
+
+        XCTAssertEqual(roi.origin.x, 0.185, accuracy: 0.001)
+        XCTAssertEqual(roi.origin.y, 0.26, accuracy: 0.001)
+        XCTAssertEqual(roi.width, 0.63, accuracy: 0.001)
+        XCTAssertEqual(roi.height, 0.48, accuracy: 0.001)
+    }
+
+    func testCrustTrimmedROIFallsBackToFullCellWhenDetectionFails() {
+        let roi = GridSlicer.crustTrimmedROI(
+            from: nil,
+            imageWidth: 100,
+            imageHeight: 80
+        )
+
+        XCTAssertEqual(roi.origin.x, 0.11, accuracy: 0.001)
+        XCTAssertEqual(roi.origin.y, 0.1, accuracy: 0.001)
+        XCTAssertEqual(roi.width, 0.78, accuracy: 0.001)
+        XCTAssertEqual(roi.height, 0.8, accuracy: 0.001)
+    }
+
     func testDetectSliceROIPrefersLargestBrightComponent() throws {
         var pixels = [UInt8](repeating: 25, count: 120 * 120)
 

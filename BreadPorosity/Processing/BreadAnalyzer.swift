@@ -81,7 +81,12 @@ struct BreadAnalyzer: BreadAnalyzing {
                     continue
                 }
 
-                let sliceROI = GridSlicer.detectSliceROI(in: cellGrayscale)
+                let detectedSliceROI = GridSlicer.detectSliceROI(in: cellGrayscale)
+                let crumbROI = GridSlicer.crustTrimmedROI(
+                    from: detectedSliceROI,
+                    imageWidth: cellGrayscale.width,
+                    imageHeight: cellGrayscale.height
+                )
                 let cellImage = cropUIImage(fullInput.displayImage, to: cellRect)
 
                 let autoMinPoreArea = max(8, cellGrayscale.pixelCount / 8000)
@@ -90,13 +95,8 @@ struct BreadAnalyzer: BreadAnalyzing {
                 parameters.thresholdBias = 0
                 parameters.minPoreArea = autoMinPoreArea
                 parameters.morphologyKernelSize = 3
-
-                if let roi = sliceROI {
-                    parameters.roiMode = .manualCrop
-                    parameters.roiRectNormalized = roi
-                } else {
-                    parameters.roiMode = .fullImage
-                }
+                parameters.roiMode = .manualCrop
+                parameters.roiRectNormalized = crumbROI
 
                 let cellAnalysis = try analyzeSynchronously(image: cellImage, parameters: parameters)
                 results[row][column] = GridCellResult(

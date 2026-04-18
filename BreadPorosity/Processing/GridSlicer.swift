@@ -23,6 +23,7 @@ struct CellRegion {
 
 enum GridSlicer {
     private static let minimumCellDimension = 48
+    private static let minimumTrimmedROIDimension = 24
 
     static func sliceCells(
         imageWidth: Int,
@@ -169,6 +170,45 @@ enum GridSlicer {
         let roiH = CGFloat(maxY - minY + 1) / CGFloat(height)
 
         return CGRect(x: roiX, y: roiY, width: roiW, height: roiH)
+    }
+
+    static func crustTrimmedROI(
+        from sliceROINormalized: CGRect?,
+        imageWidth: Int,
+        imageHeight: Int,
+        trimFraction: CGFloat = 0.11,
+        minimumTrimPixels: Int = 6
+    ) -> CGRect {
+        guard imageWidth > 0, imageHeight > 0 else {
+            return CGRect(x: 0, y: 0, width: 1, height: 1)
+        }
+
+        let imageBounds = CGRect(x: 0, y: 0, width: CGFloat(imageWidth), height: CGFloat(imageHeight))
+        let sourceROI = (sliceROINormalized ?? CGRect(x: 0, y: 0, width: 1, height: 1))
+            .clampedToUnit(minSize: 0.05)
+            .denormalized(in: imageBounds)
+            .integral
+            .intersection(imageBounds)
+
+        guard sourceROI.width > 0, sourceROI.height > 0 else {
+            return CGRect(x: 0, y: 0, width: 1, height: 1)
+        }
+
+        let targetTrimFraction = max(0, trimFraction)
+        let requestedInsetX = max(minimumTrimPixels, Int(sourceROI.width * targetTrimFraction))
+        let requestedInsetY = max(minimumTrimPixels, Int(sourceROI.height * targetTrimFraction))
+        let maxInsetX = max(0, (Int(sourceROI.width) - minimumTrimmedROIDimension) / 2)
+        let maxInsetY = max(0, (Int(sourceROI.height) - minimumTrimmedROIDimension) / 2)
+        let insetX = min(requestedInsetX, maxInsetX)
+        let insetY = min(requestedInsetY, maxInsetY)
+
+        let trimmedROI = sourceROI.insetBy(dx: CGFloat(insetX), dy: CGFloat(insetY))
+        return CGRect(
+            x: trimmedROI.minX / CGFloat(imageWidth),
+            y: trimmedROI.minY / CGFloat(imageHeight),
+            width: trimmedROI.width / CGFloat(imageWidth),
+            height: trimmedROI.height / CGFloat(imageHeight)
+        ).clampedToUnit(minSize: 0.05)
     }
 
     private static func otsuThresholdValue(_ image: GrayscaleImage) -> Int {
