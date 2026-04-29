@@ -125,12 +125,18 @@ struct GridAnalysisView: View {
                     let overlay = GridOverlayRenderer.renderGridOverlay(
                         baseImage: image,
                         gridSpec: result.gridSpec,
-                        cellResults: result.cellResults
+                        cellResults: result.cellResults,
+                        gridRegionNormalized: result.gridRegionNormalized
                     )
                     analysisImage(overlay)
                 } else {
-                    GridPreviewOverlay(image: image, gridSpec: viewModel.gridSpec)
+                    ROIEditorView(
+                        normalizedRect: gridRegionBinding,
+                        image: image,
+                        gridSpec: viewModel.gridSpec
+                    )
                         .frame(maxWidth: .infinity)
+                        .frame(minHeight: 260)
                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 }
             } else {
@@ -156,14 +162,14 @@ struct GridAnalysisView: View {
                 }
             } label: {
                 HStack {
-                    if viewModel.isAnalyzing {
+                    if viewModel.isAnalyzing || viewModel.isDetectingGridROI {
                         ProgressView()
                             .tint(.white)
                     } else {
                         Image(systemName: "square.grid.3x3")
                     }
 
-                    Text(viewModel.isAnalyzing ? "Analyzing \(viewModel.gridSpec.cellCount) cells..." : "Analyze Grid")
+                    Text(analysisButtonTitle)
                         .fontWeight(.semibold)
                 }
                 .frame(maxWidth: .infinity)
@@ -315,42 +321,24 @@ struct GridAnalysisView: View {
             return .red
         }
     }
-}
 
-private struct GridPreviewOverlay: View {
-    let image: UIImage
-    let gridSpec: GridSpec
+    private var gridRegionBinding: Binding<CGRect> {
+        Binding(
+            get: { viewModel.gridRegionNormalized },
+            set: { viewModel.updateGridRegion($0) }
+        )
+    }
 
-    var body: some View {
-        Image(uiImage: image)
-            .resizable()
-            .scaledToFit()
-            .overlay {
-                GeometryReader { geometry in
-                    let size = geometry.size
-                    Canvas { context, canvasSize in
-                        let cellWidth = canvasSize.width / CGFloat(gridSpec.columns)
-                        let cellHeight = canvasSize.height / CGFloat(gridSpec.rows)
+    private var analysisButtonTitle: String {
+        if viewModel.isAnalyzing {
+            return "Analyzing \(viewModel.gridSpec.cellCount) cells..."
+        }
 
-                        for row in 1..<gridSpec.rows {
-                            let y = CGFloat(row) * cellHeight
-                            var path = Path()
-                            path.move(to: CGPoint(x: 0, y: y))
-                            path.addLine(to: CGPoint(x: canvasSize.width, y: y))
-                            context.stroke(path, with: .color(.white.opacity(0.8)), lineWidth: 1.5)
-                        }
+        if viewModel.isDetectingGridROI {
+            return "Detecting ROI..."
+        }
 
-                        for column in 1..<gridSpec.columns {
-                            let x = CGFloat(column) * cellWidth
-                            var path = Path()
-                            path.move(to: CGPoint(x: x, y: 0))
-                            path.addLine(to: CGPoint(x: x, y: canvasSize.height))
-                            context.stroke(path, with: .color(.white.opacity(0.8)), lineWidth: 1.5)
-                        }
-                    }
-                    .frame(width: size.width, height: size.height)
-                }
-            }
+        return "Analyze Grid"
     }
 }
 

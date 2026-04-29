@@ -49,6 +49,65 @@ final class GridSlicerTests: XCTestCase {
         XCTAssertEqual(Int(bottomRight.pixelRect.maxY), 101)
     }
 
+    func testSliceCellsUsesDetectedContentBounds() throws {
+        let gridSpec = GridSpec(rows: 4, columns: 6)
+        let regions = try GridSlicer.sliceCells(
+            imageWidth: 600,
+            imageHeight: 400,
+            gridSpec: gridSpec,
+            boundsNormalized: CGRect(x: 0.1, y: 0.125, width: 0.8, height: 0.75)
+        )
+
+        XCTAssertEqual(regions[0][0].pixelRect, CGRect(x: 60, y: 50, width: 80, height: 75))
+        XCTAssertEqual(regions[3][5].pixelRect, CGRect(x: 460, y: 275, width: 80, height: 75))
+    }
+
+    func testDetectGridContentROIFindsUnionOfInteriorSlices() throws {
+        var pixels = [UInt8](repeating: 25, count: 300 * 220)
+
+        for row in 0..<2 {
+            for column in 0..<3 {
+                let originX = 45 + column * 75
+                let originY = 35 + row * 75
+                for y in originY..<(originY + 55) {
+                    for x in originX..<(originX + 55) {
+                        pixels[(y * 300) + x] = 210
+                    }
+                }
+            }
+        }
+
+        let image = GrayscaleImage(width: 300, height: 220, pixels: pixels)
+        let roi = try XCTUnwrap(GridSlicer.detectGridContentROI(in: image))
+
+        XCTAssertGreaterThan(roi.origin.x, 0.1)
+        XCTAssertGreaterThan(roi.origin.y, 0.1)
+        XCTAssertLessThan(roi.maxX, 0.9)
+        XCTAssertLessThan(roi.maxY, 0.9)
+        XCTAssertGreaterThan(roi.width, 0.6)
+        XCTAssertGreaterThan(roi.height, 0.55)
+    }
+
+    func testDetectGridContentROIReturnsNilWhenLargeComponentTouchesEdge() {
+        var pixels = [UInt8](repeating: 25, count: 160 * 120)
+
+        for y in 0..<55 {
+            for x in 0..<55 {
+                pixels[(y * 160) + x] = 210
+            }
+        }
+
+        for y in 45..<100 {
+            for x in 80..<135 {
+                pixels[(y * 160) + x] = 210
+            }
+        }
+
+        let image = GrayscaleImage(width: 160, height: 120, pixels: pixels)
+
+        XCTAssertNil(GridSlicer.detectGridContentROI(in: image))
+    }
+
     func testDetectSliceROIFindsBrightRegion() {
         var pixels = [UInt8](repeating: 30, count: 100 * 100)
 

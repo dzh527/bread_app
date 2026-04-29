@@ -5,6 +5,7 @@ struct ROIEditorView: View {
     @Binding var normalizedRect: CGRect
 
     let image: UIImage
+    var gridSpec: GridSpec? = nil
 
     @State private var dragStartRect: CGRect?
 
@@ -35,6 +36,11 @@ struct ROIEditorView: View {
                     .path(in: selectionRect)
                     .stroke(.white, lineWidth: 2)
 
+                if let gridSpec {
+                    gridPath(in: selectionRect, gridSpec: gridSpec)
+                        .stroke(.white.opacity(0.75), lineWidth: 1.5)
+                }
+
                 Color.clear
                     .contentShape(Rectangle())
                     .frame(width: selectionRect.width, height: selectionRect.height)
@@ -61,6 +67,26 @@ struct ROIEditorView: View {
             .shadow(color: .black.opacity(0.18), radius: 4, x: 0, y: 2)
             .position(point)
             .gesture(dragGesture(for: kind, in: imageRect))
+    }
+
+    private func gridPath(in rect: CGRect, gridSpec: GridSpec) -> Path {
+        var path = Path()
+        let cellWidth = rect.width / CGFloat(gridSpec.columns)
+        let cellHeight = rect.height / CGFloat(gridSpec.rows)
+
+        for row in 1..<gridSpec.rows {
+            let y = rect.minY + CGFloat(row) * cellHeight
+            path.move(to: CGPoint(x: rect.minX, y: y))
+            path.addLine(to: CGPoint(x: rect.maxX, y: y))
+        }
+
+        for column in 1..<gridSpec.columns {
+            let x = rect.minX + CGFloat(column) * cellWidth
+            path.move(to: CGPoint(x: x, y: rect.minY))
+            path.addLine(to: CGPoint(x: x, y: rect.maxY))
+        }
+
+        return path
     }
 
     private func dragGesture(for handle: DragHandle, in imageRect: CGRect) -> some Gesture {

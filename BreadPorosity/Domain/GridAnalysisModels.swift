@@ -55,6 +55,19 @@ struct GridAnalysisResult {
     let gridSpec: GridSpec
     let cellResults: [[GridCellResult?]]
     let columnSummaries: [ColumnSummary]
+    let gridRegionNormalized: CGRect
+
+    init(
+        gridSpec: GridSpec,
+        cellResults: [[GridCellResult?]],
+        columnSummaries: [ColumnSummary],
+        gridRegionNormalized: CGRect = CGRect(x: 0, y: 0, width: 1, height: 1)
+    ) {
+        self.gridSpec = gridSpec
+        self.cellResults = cellResults
+        self.columnSummaries = columnSummaries
+        self.gridRegionNormalized = gridRegionNormalized
+    }
 
     func cellResult(row: Int, column: Int) -> GridCellResult? {
         guard gridSpec.isValid(row: row, column: column) else {

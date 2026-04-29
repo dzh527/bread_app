@@ -15,7 +15,13 @@ extension UIImage {
 
 protocol BreadAnalyzing {
     func analyze(image: UIImage, parameters: AnalysisParameters) async throws -> BreadAnalysisResult
-    func analyzeGrid(image: UIImage, gridSpec: GridSpec) async throws -> GridAnalysisResult
+    func analyzeGrid(image: UIImage, gridSpec: GridSpec, gridRegionNormalized: CGRect?) async throws -> GridAnalysisResult
+}
+
+extension BreadAnalyzing {
+    func analyzeGrid(image: UIImage, gridSpec: GridSpec) async throws -> GridAnalysisResult {
+        try await analyzeGrid(image: image, gridSpec: gridSpec, gridRegionNormalized: nil)
+    }
 }
 
 struct BreadAnalyzer: BreadAnalyzing {
@@ -34,7 +40,7 @@ struct BreadAnalyzer: BreadAnalyzing {
         }
     }
 
-    func analyzeGrid(image: UIImage, gridSpec: GridSpec) async throws -> GridAnalysisResult {
+    func analyzeGrid(image: UIImage, gridSpec: GridSpec, gridRegionNormalized: CGRect? = nil) async throws -> GridAnalysisResult {
         let normalizedImage = image.normalizedOrientationForAnalysis()
         let maxDim = maxProcessingDimension
 
@@ -44,6 +50,7 @@ struct BreadAnalyzer: BreadAnalyzing {
                     let result = try self.analyzeGridSynchronously(
                         image: normalizedImage,
                         gridSpec: gridSpec,
+                        gridRegionNormalized: gridRegionNormalized,
                         maxDimension: maxDim
                     )
                     continuation.resume(returning: result)
@@ -57,13 +64,19 @@ struct BreadAnalyzer: BreadAnalyzing {
     private func analyzeGridSynchronously(
         image: UIImage,
         gridSpec: GridSpec,
+        gridRegionNormalized selectedGridRegionNormalized: CGRect?,
         maxDimension: Int
     ) throws -> GridAnalysisResult {
         let fullInput = try AnalysisImageFactory.makeInput(from: image, maxDimension: maxDimension)
+        let gridRegionNormalized = selectedGridRegionNormalized?
+            .clampedToUnit(minSize: 0.05)
+            ?? GridSlicer.detectGridContentROI(in: fullInput.grayscale)
+            ?? CGRect(x: 0, y: 0, width: 1, height: 1)
         let cellRegions = try GridSlicer.sliceCells(
             imageWidth: fullInput.grayscale.width,
             imageHeight: fullInput.grayscale.height,
-            gridSpec: gridSpec
+            gridSpec: gridSpec,
+            boundsNormalized: gridRegionNormalized
         )
 
         var results = [[GridCellResult?]](
@@ -115,7 +128,8 @@ struct BreadAnalyzer: BreadAnalyzing {
         return GridAnalysisResult(
             gridSpec: gridSpec,
             cellResults: results,
-            columnSummaries: columnSummaries
+            columnSummaries: columnSummaries,
+            gridRegionNormalized: gridRegionNormalized
         )
     }
 

@@ -6,12 +6,17 @@ import UIKit
 final class GridAnalysisViewModel: ObservableObject {
     @Published var selectedImage: UIImage?
     @Published var gridSpec = GridSpec(rows: 2, columns: 3)
+    @Published var gridRegionNormalized = CGRect(x: 0, y: 0, width: 1, height: 1)
     @Published var gridResult: GridAnalysisResult?
     @Published var isAnalyzing = false
+    @Published var isDetectingGridROI = false
     @Published var alertMessage: String?
     @Published var isShowingCamera = false
 
     private let analyzer: any BreadAnalyzing
+    private let maxROIDetectionDimension = 1400
+    private var roiDetectionID = UUID()
+    private var roiEditedSinceSelection = false
 
     init(analyzer: any BreadAnalyzing = BreadAnalyzer()) {
         self.analyzer = analyzer
@@ -22,7 +27,7 @@ final class GridAnalysisViewModel: ObservableObject {
     }
 
     var canAnalyze: Bool {
-        selectedImage != nil && !isAnalyzing
+        selectedImage != nil && !isAnalyzing && !isDetectingGridROI
     }
 
     func didPickImage(_ image: UIImage?) {
@@ -31,8 +36,16 @@ final class GridAnalysisViewModel: ObservableObject {
         }
 
         selectedImage = image.normalizedOrientationForAnalysis()
+        gridRegionNormalized = CGRect(x: 0, y: 0, width: 1, height: 1)
+        roiEditedSinceSelection = false
+        roiDetectionID = UUID()
         gridResult = nil
         alertMessage = nil
+
+        let detectionID = roiDetectionID
+        Task {
+            await detectGridROI(detectionID: detectionID)
+        }
     }
 
     func loadPhotoSelection(_ item: PhotosPickerItem?) async {
@@ -74,7 +87,11 @@ final class GridAnalysisViewModel: ObservableObject {
         }
 
         do {
-            gridResult = try await analyzer.analyzeGrid(image: image, gridSpec: gridSpec)
+            gridResult = try await analyzer.analyzeGrid(
+                image: image,
+                gridSpec: gridSpec,
+                gridRegionNormalized: gridRegionNormalized
+            )
         } catch {
             alertMessage = error.localizedDescription
         }
@@ -82,5 +99,44 @@ final class GridAnalysisViewModel: ObservableObject {
 
     func clearResult() {
         gridResult = nil
+    }
+
+    func updateGridRegion(_ rect: CGRect) {
+        roiEditedSinceSelection = true
+        gridRegionNormalized = rect.clampedToUnit(minSize: 0.05)
+        gridResult = nil
+    }
+
+    private func detectGridROI(detectionID: UUID) async {
+        guard let image = selectedImage else {
+            return
+        }
+
+        isDetectingGridROI = true
+        defer {
+            if roiDetectionID == detectionID {
+                isDetectingGridROI = false
+            }
+        }
+
+        let maxDimension = maxROIDetectionDimension
+        do {
+            let detectedROI = try await Task.detached(priority: .userInitiated) {
+                let input = try AnalysisImageFactory.makeInput(from: image, maxDimension: maxDimension)
+                return GridSlicer.detectGridContentROI(in: input.grayscale)
+            }.value
+
+            guard selectedImage === image, roiDetectionID == detectionID, !roiEditedSinceSelection else {
+                return
+            }
+
+            gridRegionNormalized = (detectedROI ?? CGRect(x: 0, y: 0, width: 1, height: 1))
+                .clampedToUnit(minSize: 0.05)
+            gridResult = nil
+        } catch {
+            if roiDetectionID == detectionID, !roiEditedSinceSelection {
+                gridRegionNormalized = CGRect(x: 0, y: 0, width: 1, height: 1)
+            }
+        }
     }
 }

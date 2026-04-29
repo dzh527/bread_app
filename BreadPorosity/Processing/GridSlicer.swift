@@ -28,27 +28,43 @@ enum GridSlicer {
     static func sliceCells(
         imageWidth: Int,
         imageHeight: Int,
-        gridSpec: GridSpec
+        gridSpec: GridSpec,
+        boundsNormalized: CGRect? = nil
     ) throws -> [[CellRegion]] {
         guard imageWidth >= minimumCellDimension, imageHeight >= minimumCellDimension else {
             throw GridSlicerError.imageTooSmall
         }
 
-        let cellWidth = imageWidth / gridSpec.columns
-        let cellHeight = imageHeight / gridSpec.rows
+        let imageBounds = CGRect(x: 0, y: 0, width: imageWidth, height: imageHeight)
+        let sliceBounds = (boundsNormalized ?? CGRect(x: 0, y: 0, width: 1, height: 1))
+            .clampedToUnit(minSize: 0.05)
+            .denormalized(in: imageBounds)
+            .integral
+            .intersection(imageBounds)
+
+        let boundsWidth = Int(sliceBounds.width)
+        let boundsHeight = Int(sliceBounds.height)
+        guard boundsWidth >= minimumCellDimension, boundsHeight >= minimumCellDimension else {
+            throw GridSlicerError.imageTooSmall
+        }
+
+        let cellWidth = boundsWidth / gridSpec.columns
+        let cellHeight = boundsHeight / gridSpec.rows
 
         guard cellWidth >= minimumCellDimension, cellHeight >= minimumCellDimension else {
             throw GridSlicerError.cellTooSmall
         }
 
+        let originX = Int(sliceBounds.origin.x)
+        let originY = Int(sliceBounds.origin.y)
         var grid = [[CellRegion]]()
         for row in 0..<gridSpec.rows {
             var rowRegions = [CellRegion]()
             for column in 0..<gridSpec.columns {
-                let x = column * cellWidth
-                let y = row * cellHeight
-                let w = (column == gridSpec.columns - 1) ? (imageWidth - x) : cellWidth
-                let h = (row == gridSpec.rows - 1) ? (imageHeight - y) : cellHeight
+                let x = originX + (column * cellWidth)
+                let y = originY + (row * cellHeight)
+                let w = (column == gridSpec.columns - 1) ? (originX + boundsWidth - x) : cellWidth
+                let h = (row == gridSpec.rows - 1) ? (originY + boundsHeight - y) : cellHeight
 
                 let pixelRect = CGRect(x: x, y: y, width: w, height: h)
                 let cellIndex = GridCellIndex(row: row, column: column)
@@ -63,6 +79,28 @@ enum GridSlicer {
         }
 
         return grid
+    }
+
+    static func detectGridContentROI(in grayscale: GrayscaleImage) -> CGRect? {
+        let intensityStats = grayscale.meanAndStandardDeviation()
+        guard intensityStats.standardDeviation >= 1 else {
+            return nil
+        }
+
+        let threshold = otsuThresholdValue(grayscale)
+        let brightCandidate = detectInteriorContentROI(in: grayscale, threshold: threshold, foregroundIsBright: true)
+        let darkCandidate = detectInteriorContentROI(in: grayscale, threshold: threshold, foregroundIsBright: false)
+
+        switch (brightCandidate, darkCandidate) {
+        case let (bright?, dark?):
+            return bright.foregroundArea >= dark.foregroundArea ? bright.roi : dark.roi
+        case let (bright?, nil):
+            return bright.roi
+        case let (nil, dark?):
+            return dark.roi
+        case (nil, nil):
+            return nil
+        }
     }
 
     static func detectSliceROI(in grayscale: GrayscaleImage) -> CGRect? {
@@ -247,5 +285,129 @@ enum GridSlicer {
         }
 
         return threshold
+    }
+
+    private struct ContentCandidate {
+        let roi: CGRect
+        let foregroundArea: Int
+    }
+
+    private static func detectInteriorContentROI(
+        in grayscale: GrayscaleImage,
+        threshold: Int,
+        foregroundIsBright: Bool
+    ) -> ContentCandidate? {
+        let width = grayscale.width
+        let height = grayscale.height
+        let minimumComponentArea = max(64, grayscale.pixelCount / 200)
+        var visited = [UInt8](repeating: 0, count: grayscale.pixelCount)
+        var queue = [Int]()
+        queue.reserveCapacity(1024)
+
+        let neighborOffsets = [
+            (-1, -1), (0, -1), (1, -1),
+            (-1, 0),           (1, 0),
+            (-1, 1),  (0, 1),  (1, 1)
+        ]
+
+        var unionMinX = width
+        var unionMinY = height
+        var unionMaxX = 0
+        var unionMaxY = 0
+        var foregroundArea = 0
+
+        for startIndex in 0..<grayscale.pixelCount {
+            guard visited[startIndex] == 0, isForeground(grayscale.pixels[startIndex], threshold: threshold, foregroundIsBright: foregroundIsBright) else {
+                continue
+            }
+
+            visited[startIndex] = 1
+            queue.removeAll(keepingCapacity: true)
+            queue.append(startIndex)
+
+            var queueHead = 0
+            var componentArea = 0
+            var minX = width
+            var minY = height
+            var maxX = 0
+            var maxY = 0
+            var touchesImageEdge = false
+
+            while queueHead < queue.count {
+                let currentIndex = queue[queueHead]
+                queueHead += 1
+
+                let x = currentIndex % width
+                let y = currentIndex / width
+                componentArea += 1
+                minX = min(minX, x)
+                minY = min(minY, y)
+                maxX = max(maxX, x)
+                maxY = max(maxY, y)
+                if x == 0 || y == 0 || x == width - 1 || y == height - 1 {
+                    touchesImageEdge = true
+                }
+
+                for (offsetX, offsetY) in neighborOffsets {
+                    let nextX = x + offsetX
+                    let nextY = y + offsetY
+
+                    guard nextX >= 0, nextX < width, nextY >= 0, nextY < height else {
+                        continue
+                    }
+
+                    let nextIndex = (nextY * width) + nextX
+                    guard visited[nextIndex] == 0,
+                          isForeground(grayscale.pixels[nextIndex], threshold: threshold, foregroundIsBright: foregroundIsBright)
+                    else {
+                        continue
+                    }
+
+                    visited[nextIndex] = 1
+                    queue.append(nextIndex)
+                }
+            }
+
+            guard componentArea >= minimumComponentArea else {
+                continue
+            }
+
+            guard !touchesImageEdge else {
+                return nil
+            }
+
+            foregroundArea += componentArea
+            unionMinX = min(unionMinX, minX)
+            unionMinY = min(unionMinY, minY)
+            unionMaxX = max(unionMaxX, maxX)
+            unionMaxY = max(unionMaxY, maxY)
+        }
+
+        guard foregroundArea >= max(128, grayscale.pixelCount / 50) else {
+            return nil
+        }
+
+        let padding = max(2, min(width, height) / 50)
+        unionMinX = max(0, unionMinX - padding)
+        unionMinY = max(0, unionMinY - padding)
+        unionMaxX = min(width - 1, unionMaxX + padding)
+        unionMaxY = min(height - 1, unionMaxY + padding)
+
+        let boundsArea = (unionMaxX - unionMinX + 1) * (unionMaxY - unionMinY + 1)
+        guard Double(boundsArea) / Double(grayscale.pixelCount) < 0.99 else {
+            return nil
+        }
+
+        let roi = CGRect(
+            x: CGFloat(unionMinX) / CGFloat(width),
+            y: CGFloat(unionMinY) / CGFloat(height),
+            width: CGFloat(unionMaxX - unionMinX + 1) / CGFloat(width),
+            height: CGFloat(unionMaxY - unionMinY + 1) / CGFloat(height)
+        )
+        return ContentCandidate(roi: roi, foregroundArea: foregroundArea)
+    }
+
+    private static func isForeground(_ pixel: UInt8, threshold: Int, foregroundIsBright: Bool) -> Bool {
+        foregroundIsBright ? Int(pixel) > threshold : Int(pixel) <= threshold
     }
 }

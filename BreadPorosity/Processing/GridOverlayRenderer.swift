@@ -5,7 +5,8 @@ enum GridOverlayRenderer {
     static func renderGridOverlay(
         baseImage: UIImage,
         gridSpec: GridSpec,
-        cellResults: [[GridCellResult?]]
+        cellResults: [[GridCellResult?]],
+        gridRegionNormalized: CGRect = CGRect(x: 0, y: 0, width: 1, height: 1)
     ) -> UIImage {
         let size = baseImage.size
         let renderer = UIGraphicsImageRenderer(size: size)
@@ -14,22 +15,26 @@ enum GridOverlayRenderer {
             baseImage.draw(in: CGRect(origin: .zero, size: size))
 
             let cgContext = context.cgContext
-            let cellWidth = size.width / CGFloat(gridSpec.columns)
-            let cellHeight = size.height / CGFloat(gridSpec.rows)
+            let gridRect = gridRegionNormalized
+                .clampedToUnit(minSize: 0.05)
+                .denormalized(in: CGRect(origin: .zero, size: size))
+            let cellWidth = gridRect.width / CGFloat(gridSpec.columns)
+            let cellHeight = gridRect.height / CGFloat(gridSpec.rows)
 
             cgContext.setStrokeColor(UIColor.white.cgColor)
             cgContext.setLineWidth(max(2, min(size.width, size.height) / 300))
+            cgContext.stroke(gridRect)
 
             for row in 1..<gridSpec.rows {
-                let y = CGFloat(row) * cellHeight
-                cgContext.move(to: CGPoint(x: 0, y: y))
-                cgContext.addLine(to: CGPoint(x: size.width, y: y))
+                let y = gridRect.minY + CGFloat(row) * cellHeight
+                cgContext.move(to: CGPoint(x: gridRect.minX, y: y))
+                cgContext.addLine(to: CGPoint(x: gridRect.maxX, y: y))
             }
 
             for column in 1..<gridSpec.columns {
-                let x = CGFloat(column) * cellWidth
-                cgContext.move(to: CGPoint(x: x, y: 0))
-                cgContext.addLine(to: CGPoint(x: x, y: size.height))
+                let x = gridRect.minX + CGFloat(column) * cellWidth
+                cgContext.move(to: CGPoint(x: x, y: gridRect.minY))
+                cgContext.addLine(to: CGPoint(x: x, y: gridRect.maxY))
             }
 
             cgContext.strokePath()
@@ -53,8 +58,8 @@ enum GridOverlayRenderer {
                     ]
 
                     let textSize = (text as NSString).size(withAttributes: attributes)
-                    let cellOriginX = CGFloat(column) * cellWidth
-                    let cellOriginY = CGFloat(row) * cellHeight
+                    let cellOriginX = gridRect.minX + CGFloat(column) * cellWidth
+                    let cellOriginY = gridRect.minY + CGFloat(row) * cellHeight
 
                     let labelRect = CGRect(
                         x: cellOriginX + (cellWidth - textSize.width) / 2 - 4,

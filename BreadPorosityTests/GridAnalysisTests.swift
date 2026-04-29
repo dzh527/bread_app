@@ -16,6 +16,36 @@ final class GridAnalysisTests: XCTestCase {
         XCTAssertEqual(result.columnSummaries.count, 2)
     }
 
+    func testAnalyzeGridUsesDetectedBreadRegionInsteadOfFullBackground() async throws {
+        let image = makeSyntheticGridImage(rows: 4, columns: 6, cellSize: 70)
+        let analyzer = BreadAnalyzer()
+        let gridSpec = GridSpec(rows: 4, columns: 6)
+
+        let result = try await analyzer.analyzeGrid(image: image, gridSpec: gridSpec)
+
+        XCTAssertGreaterThan(result.gridRegionNormalized.origin.x, 0)
+        XCTAssertGreaterThan(result.gridRegionNormalized.origin.y, 0)
+        XCTAssertLessThan(result.gridRegionNormalized.width, 1)
+        XCTAssertLessThan(result.gridRegionNormalized.height, 1)
+        XCTAssertEqual(result.allResults.count, gridSpec.cellCount)
+    }
+
+    func testAnalyzeGridUsesProvidedGridRegion() async throws {
+        let image = makeSyntheticGridImage(rows: 2, columns: 2, cellSize: 120)
+        let analyzer = BreadAnalyzer()
+        let gridSpec = GridSpec(rows: 2, columns: 2)
+        let selectedROI = CGRect(x: 0.05, y: 0.05, width: 0.9, height: 0.9)
+
+        let result = try await analyzer.analyzeGrid(
+            image: image,
+            gridSpec: gridSpec,
+            gridRegionNormalized: selectedROI
+        )
+
+        XCTAssertEqual(result.gridRegionNormalized, selectedROI)
+        XCTAssertEqual(result.allResults.count, gridSpec.cellCount)
+    }
+
     func testAnalyzeGridCellsHaveNonZeroPorosity() async throws {
         let image = makeSyntheticGridImage(rows: 2, columns: 2, cellSize: 120)
         let analyzer = BreadAnalyzer()
