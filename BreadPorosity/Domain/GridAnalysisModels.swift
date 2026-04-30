@@ -27,21 +27,28 @@ struct GridCellResult: Identifiable {
     let cellImage: UIImage
     let analysisResult: BreadAnalysisResult
     let crumbROINormalized: CGRect
+    let crumbROIArea: Int
 
     init(
         cellIndex: GridCellIndex,
         cellImage: UIImage,
         analysisResult: BreadAnalysisResult,
-        crumbROINormalized: CGRect = CGRect(x: 0, y: 0, width: 1, height: 1)
+        crumbROINormalized: CGRect = CGRect(x: 0, y: 0, width: 1, height: 1),
+        crumbROIArea: Int? = nil
     ) {
         self.cellIndex = cellIndex
         self.cellImage = cellImage
         self.analysisResult = analysisResult
         self.crumbROINormalized = crumbROINormalized
+        self.crumbROIArea = crumbROIArea ?? Int((cellImage.size.width * crumbROINormalized.width) * (cellImage.size.height * crumbROINormalized.height))
     }
 
     var id: GridCellIndex {
         cellIndex
+    }
+
+    var crumbROIAreaText: String {
+        "\(crumbROIArea) px²"
     }
 }
 

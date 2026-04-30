@@ -19,7 +19,7 @@ struct GridCellDetailView: View {
         VStack(spacing: 12) {
             HStack(spacing: 12) {
                 metricTile(title: "Porosity", value: cellResult.analysisResult.porosityPercentText)
-                metricTile(title: "Pores", value: "\(cellResult.analysisResult.poreCount)")
+                metricTile(title: "Crumb ROI Area", value: cellResult.crumbROIAreaText)
             }
 
             HStack(spacing: 12) {

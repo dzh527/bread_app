@@ -112,11 +112,17 @@ struct BreadAnalyzer: BreadAnalyzing {
                 parameters.roiRectNormalized = crumbROI
 
                 let cellAnalysis = try analyzeSynchronously(image: cellImage, parameters: parameters)
+                let crumbArea = crumbROIAreaPixels(
+                    crumbROI,
+                    imageWidth: cellGrayscale.width,
+                    imageHeight: cellGrayscale.height
+                )
                 results[row][column] = GridCellResult(
                     cellIndex: region.cellIndex,
                     cellImage: cellImage,
                     analysisResult: cellAnalysis,
-                    crumbROINormalized: crumbROI
+                    crumbROINormalized: crumbROI,
+                    crumbROIArea: crumbArea
                 )
             }
         }
@@ -139,6 +145,17 @@ struct BreadAnalyzer: BreadAnalyzing {
         return renderer.image { _ in
             image.draw(at: CGPoint(x: -rect.origin.x, y: -rect.origin.y))
         }
+    }
+
+    private func crumbROIAreaPixels(_ roi: CGRect, imageWidth: Int, imageHeight: Int) -> Int {
+        let imageBounds = CGRect(x: 0, y: 0, width: imageWidth, height: imageHeight)
+        let pixelRect = roi
+            .clampedToUnit(minSize: 0.05)
+            .denormalized(in: imageBounds)
+            .integral
+            .intersection(imageBounds)
+
+        return max(0, Int(pixelRect.width) * Int(pixelRect.height))
     }
 
     private func analyzeSynchronously(image: UIImage, parameters: AnalysisParameters) throws -> BreadAnalysisResult {

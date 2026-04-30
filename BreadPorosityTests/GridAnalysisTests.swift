@@ -75,6 +75,7 @@ final class GridAnalysisTests: XCTestCase {
             XCTAssertGreaterThan(cell.crumbROINormalized.origin.y, 0)
             XCTAssertLessThan(cell.crumbROINormalized.width, 1)
             XCTAssertLessThan(cell.crumbROINormalized.height, 1)
+            XCTAssertGreaterThan(cell.crumbROIArea, 0)
         }
     }
 
