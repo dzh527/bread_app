@@ -36,7 +36,7 @@ struct GridCellDetailView: View {
                 .font(.subheadline)
                 .fontWeight(.semibold)
 
-            analysisImage(cellResult.cellImage)
+            analysisImage(cellResult.cellImage, crumbROI: cellResult.crumbROINormalized)
         }
         .detailCardStyle()
     }
@@ -78,12 +78,44 @@ struct GridCellDetailView: View {
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
-    private func analysisImage(_ image: UIImage) -> some View {
+    private func analysisImage(_ image: UIImage, crumbROI: CGRect? = nil) -> some View {
         Image(uiImage: image)
             .resizable()
             .scaledToFit()
             .frame(maxWidth: .infinity)
+            .overlay {
+                if let crumbROI {
+                    GeometryReader { geometry in
+                        let imageRect = aspectFitRect(for: image.size, in: geometry.size)
+                        let roiRect = crumbROI
+                            .clampedToUnit(minSize: 0.05)
+                            .denormalized(in: imageRect)
+
+                        Rectangle()
+                            .stroke(.green, lineWidth: 2)
+                            .frame(width: roiRect.width, height: roiRect.height)
+                            .position(x: roiRect.midX, y: roiRect.midY)
+                    }
+                }
+            }
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private func aspectFitRect(for imageSize: CGSize, in containerSize: CGSize) -> CGRect {
+        guard imageSize.width > 0, imageSize.height > 0, containerSize.width > 0, containerSize.height > 0 else {
+            return .zero
+        }
+
+        let scale = min(containerSize.width / imageSize.width, containerSize.height / imageSize.height)
+        let fittedWidth = imageSize.width * scale
+        let fittedHeight = imageSize.height * scale
+
+        return CGRect(
+            x: (containerSize.width - fittedWidth) / 2,
+            y: (containerSize.height - fittedHeight) / 2,
+            width: fittedWidth,
+            height: fittedHeight
+        )
     }
 }
 
