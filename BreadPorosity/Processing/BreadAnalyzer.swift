@@ -102,12 +102,12 @@ struct BreadAnalyzer: BreadAnalyzing {
                 )
                 let cellImage = cropUIImage(fullInput.displayImage, to: cellRect)
 
-                let autoMinPoreArea = max(8, cellGrayscale.pixelCount / 8000)
+                let autoMinPoreArea = max(24, cellGrayscale.pixelCount / 2500)
                 var parameters = AnalysisParameters()
                 parameters.thresholdMode = .adaptive
                 parameters.thresholdBias = 0
                 parameters.minPoreArea = autoMinPoreArea
-                parameters.morphologyKernelSize = 3
+                parameters.morphologyKernelSize = 7
                 parameters.roiMode = .manualCrop
                 parameters.roiRectNormalized = crumbROI
 

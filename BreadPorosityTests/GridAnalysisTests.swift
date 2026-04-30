@@ -113,9 +113,9 @@ final class GridAnalysisTests: XCTestCase {
                     context.cgContext.fill(CGRect(x: x, y: y, width: cellSize, height: cellSize))
 
                     UIColor(white: 0.14, alpha: 1).setFill()
-                    let poreX = x + cellSize / 3
-                    let poreY = y + cellSize / 3
-                    let poreSize = cellSize / 4
+                    let poreSize = max(12, cellSize / 10)
+                    let poreX = x + (cellSize - poreSize) / 2
+                    let poreY = y + (cellSize - poreSize) / 2
                     context.cgContext.fillEllipse(in: CGRect(x: poreX, y: poreY, width: poreSize, height: poreSize))
                 }
             }

@@ -5,7 +5,7 @@ import UIKit
 @MainActor
 final class GridAnalysisViewModel: ObservableObject {
     @Published var selectedImage: UIImage?
-    @Published var gridSpec = GridSpec(rows: 2, columns: 3)
+    @Published var gridSpec = GridSpec(rows: 4, columns: 6)
     @Published var gridRegionNormalized = CGRect(x: 0, y: 0, width: 1, height: 1)
     @Published var gridResult: GridAnalysisResult?
     @Published var isAnalyzing = false
