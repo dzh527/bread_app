@@ -39,6 +39,27 @@ enum GridOverlayRenderer {
 
             cgContext.strokePath()
 
+            cgContext.setStrokeColor(UIColor.systemGreen.cgColor)
+            cgContext.setLineWidth(max(2, min(size.width, size.height) / 220))
+            for row in 0..<gridSpec.rows {
+                for column in 0..<gridSpec.columns {
+                    guard let cellResult = cellResults[row][column] else {
+                        continue
+                    }
+
+                    let cellRect = CGRect(
+                        x: gridRect.minX + CGFloat(column) * cellWidth,
+                        y: gridRect.minY + CGFloat(row) * cellHeight,
+                        width: cellWidth,
+                        height: cellHeight
+                    )
+                    let crumbRect = cellResult.crumbROINormalized
+                        .clampedToUnit(minSize: 0.05)
+                        .denormalized(in: cellRect)
+                    cgContext.stroke(crumbRect)
+                }
+            }
+
             let fontSize = max(12, min(cellWidth, cellHeight) / 6)
             let font = UIFont.boldSystemFont(ofSize: fontSize)
             let paragraphStyle = NSMutableParagraphStyle()

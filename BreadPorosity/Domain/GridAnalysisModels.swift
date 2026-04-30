@@ -26,6 +26,19 @@ struct GridCellResult: Identifiable {
     let cellIndex: GridCellIndex
     let cellImage: UIImage
     let analysisResult: BreadAnalysisResult
+    let crumbROINormalized: CGRect
+
+    init(
+        cellIndex: GridCellIndex,
+        cellImage: UIImage,
+        analysisResult: BreadAnalysisResult,
+        crumbROINormalized: CGRect = CGRect(x: 0, y: 0, width: 1, height: 1)
+    ) {
+        self.cellIndex = cellIndex
+        self.cellImage = cellImage
+        self.analysisResult = analysisResult
+        self.crumbROINormalized = crumbROINormalized
+    }
 
     var id: GridCellIndex {
         cellIndex

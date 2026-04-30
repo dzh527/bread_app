@@ -115,7 +115,8 @@ struct BreadAnalyzer: BreadAnalyzing {
                 results[row][column] = GridCellResult(
                     cellIndex: region.cellIndex,
                     cellImage: cellImage,
-                    analysisResult: cellAnalysis
+                    analysisResult: cellAnalysis,
+                    crumbROINormalized: crumbROI
                 )
             }
         }

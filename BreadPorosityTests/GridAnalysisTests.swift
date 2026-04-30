@@ -63,6 +63,21 @@ final class GridAnalysisTests: XCTestCase {
         }
     }
 
+    func testAnalyzeGridStoresDetectedCrumbROIForEachCell() async throws {
+        let image = makeSyntheticGridImage(rows: 2, columns: 2, cellSize: 120)
+        let analyzer = BreadAnalyzer()
+        let gridSpec = GridSpec(rows: 2, columns: 2)
+
+        let result = try await analyzer.analyzeGrid(image: image, gridSpec: gridSpec)
+
+        for cell in result.allResults {
+            XCTAssertGreaterThan(cell.crumbROINormalized.origin.x, 0)
+            XCTAssertGreaterThan(cell.crumbROINormalized.origin.y, 0)
+            XCTAssertLessThan(cell.crumbROINormalized.width, 1)
+            XCTAssertLessThan(cell.crumbROINormalized.height, 1)
+        }
+    }
+
     func testAnalyzeGridColumnSummariesArePopulated() async throws {
         let image = makeSyntheticGridImage(rows: 2, columns: 2, cellSize: 120)
         let analyzer = BreadAnalyzer()
