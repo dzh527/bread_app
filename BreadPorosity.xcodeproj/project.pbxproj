@@ -9,8 +9,6 @@
 /* Begin PBXBuildFile section */
 		7A4D0E5B2F8C100100000001 /* BreadPorosityApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000101 /* BreadPorosityApp.swift */; };
 		7A4D0E5B2F8C100100000002 /* AppContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000102 /* AppContainerView.swift */; };
-		7A4D0E5B2F8C100100000003 /* AnalysisView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000103 /* AnalysisView.swift */; };
-		7A4D0E5B2F8C100100000004 /* AnalysisViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000104 /* AnalysisViewModel.swift */; };
 		7A4D0E5B2F8C100100000005 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000105 /* ImagePicker.swift */; };
 		7A4D0E5B2F8C100100000006 /* AnalysisModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000106 /* AnalysisModels.swift */; };
 		7A4D0E5B2F8C100100000007 /* BreadAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000107 /* BreadAnalyzer.swift */; };
@@ -46,8 +44,6 @@
 /* Begin PBXFileReference section */
 		7A4D0E5B2F8C100100000101 /* BreadPorosityApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadPorosityApp.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C100100000102 /* AppContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainerView.swift; sourceTree = "<group>"; };
-		7A4D0E5B2F8C100100000103 /* AnalysisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisView.swift; sourceTree = "<group>"; };
-		7A4D0E5B2F8C100100000104 /* AnalysisViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisViewModel.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C100100000105 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C100100000106 /* AnalysisModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisModels.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C100100000107 /* BreadAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadAnalyzer.swift; sourceTree = "<group>"; };
@@ -144,8 +140,6 @@
 		7A4D0E5B2F8C100100000305 /* Analysis */ = {
 			isa = PBXGroup;
 			children = (
-				7A4D0E5B2F8C100100000103 /* AnalysisView.swift */,
-				7A4D0E5B2F8C100100000104 /* AnalysisViewModel.swift */,
 				7A4D0E5B2F8C100100000105 /* ImagePicker.swift */,
 				7A4D0E5B2F8C10010000010E /* ROIEditorView.swift */,
 			);
@@ -305,8 +299,6 @@
 			files = (
 				7A4D0E5B2F8C100100000001 /* BreadPorosityApp.swift in Sources */,
 				7A4D0E5B2F8C100100000002 /* AppContainerView.swift in Sources */,
-				7A4D0E5B2F8C100100000003 /* AnalysisView.swift in Sources */,
-				7A4D0E5B2F8C100100000004 /* AnalysisViewModel.swift in Sources */,
 				7A4D0E5B2F8C100100000005 /* ImagePicker.swift in Sources */,
 				7A4D0E5B2F8C100100000006 /* AnalysisModels.swift in Sources */,
 				7A4D0E5B2F8C100100000007 /* BreadAnalyzer.swift in Sources */,

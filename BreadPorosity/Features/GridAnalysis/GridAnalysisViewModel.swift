@@ -101,6 +101,15 @@ final class GridAnalysisViewModel: ObservableObject {
         gridResult = nil
     }
 
+    func useSingleSliceGrid() {
+        guard !gridSpec.isSingleSlice else {
+            return
+        }
+
+        gridSpec = GridSpec(rows: 1, columns: 1)
+        clearResult()
+    }
+
     func updateGridRegion(_ rect: CGRect) {
         roiEditedSinceSelection = true
         gridRegionNormalized = rect.clampedToUnit(minSize: 0.05)

@@ -98,17 +98,28 @@ struct GridAnalysisView: View {
             Text("Grid Size")
                 .font(.headline)
 
+            Button {
+                viewModel.useSingleSliceGrid()
+            } label: {
+                Label("Single Slice", systemImage: "photo")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .disabled(viewModel.gridSpec.isSingleSlice || viewModel.isAnalyzing)
+
             Stepper(value: $viewModel.gridSpec.rows, in: 1...8) {
                 LabeledContent("Rows", value: "\(viewModel.gridSpec.rows)")
             }
-            .onChange(of: viewModel.gridSpec.rows) { _ in viewModel.clearResult() }
+            .onChange(of: viewModel.gridSpec.rows) { _, _ in viewModel.clearResult() }
+            .disabled(viewModel.isAnalyzing)
 
             Stepper(value: $viewModel.gridSpec.columns, in: 1...8) {
                 LabeledContent("Columns", value: "\(viewModel.gridSpec.columns)")
             }
-            .onChange(of: viewModel.gridSpec.columns) { _ in viewModel.clearResult() }
+            .onChange(of: viewModel.gridSpec.columns) { _, _ in viewModel.clearResult() }
+            .disabled(viewModel.isAnalyzing)
 
-            Text("\(viewModel.gridSpec.rows) × \(viewModel.gridSpec.columns) = \(viewModel.gridSpec.cellCount) slices")
+            Text(gridSpecSummary)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -341,6 +352,11 @@ struct GridAnalysisView: View {
         }
 
         return "Analyze Grid"
+    }
+
+    private var gridSpecSummary: String {
+        let sliceLabel = viewModel.gridSpec.cellCount == 1 ? "slice" : "slices"
+        return "\(viewModel.gridSpec.rows) × \(viewModel.gridSpec.columns) = \(viewModel.gridSpec.cellCount) \(sliceLabel)"
     }
 }
 

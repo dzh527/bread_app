@@ -8,6 +8,10 @@ struct GridSpec: Equatable {
         rows * columns
     }
 
+    var isSingleSlice: Bool {
+        rows == 1 && columns == 1
+    }
+
     func isValid(row: Int, column: Int) -> Bool {
         row >= 0 && row < rows && column >= 0 && column < columns
     }
