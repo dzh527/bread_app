@@ -228,8 +228,10 @@ struct GridAnalysisView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 
                 Text(cellResult.analysisResult.porosityPercentText)
-                    .font(.caption)
+                    .font(.caption2)
                     .fontWeight(.semibold)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                     .foregroundStyle(porosityColor(cellResult.analysisResult.porosity))
 
                 Text(cellResult.cellIndex.label)

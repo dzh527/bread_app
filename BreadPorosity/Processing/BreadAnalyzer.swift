@@ -103,20 +103,22 @@ struct BreadAnalyzer: BreadAnalyzing {
                 let cellImage = cropUIImage(fullInput.displayImage, to: cellRect)
 
                 let autoMinPoreArea = max(24, cellGrayscale.pixelCount / 2500)
-                var parameters = AnalysisParameters()
-                parameters.thresholdMode = .adaptive
-                parameters.thresholdBias = 0
-                parameters.minPoreArea = autoMinPoreArea
-                parameters.morphologyKernelSize = 7
-                parameters.roiMode = .manualCrop
-                parameters.roiRectNormalized = crumbROI
-
-                let cellAnalysis = try analyzeSynchronously(image: cellImage, parameters: parameters)
                 let crumbArea = crumbROIAreaPixels(
                     crumbROI,
                     imageWidth: cellGrayscale.width,
                     imageHeight: cellGrayscale.height
                 )
+                var parameters = AnalysisParameters()
+                parameters.thresholdMode = .adaptive
+                parameters.thresholdBias = 0
+                parameters.minPoreArea = autoMinPoreArea
+                parameters.maxPoreArea = nil
+                parameters.minimumPoreContrast = 0
+                parameters.morphologyKernelSize = 5
+                parameters.roiMode = .manualCrop
+                parameters.roiRectNormalized = crumbROI
+
+                let cellAnalysis = try analyzeSynchronously(image: cellImage, parameters: parameters)
                 results[row][column] = GridCellResult(
                     cellIndex: region.cellIndex,
                     cellImage: cellImage,
@@ -168,7 +170,18 @@ struct BreadAnalyzer: BreadAnalyzing {
         let normalized = ImagePreprocessor.normalize(backgroundRemoved)
         let segmentedMask = Thresholding.segment(normalized, parameters: parameters)
         let cleanedMask = BinaryMorphology.clean(segmentedMask, kernelSize: parameters.morphologyKernelSize)
-        let components = ConnectedComponents.filter(mask: cleanedMask, minimumArea: parameters.minPoreArea)
+        let refinedMask = PoreRegionRefiner.growAndFill(
+            seedMask: cleanedMask,
+            sourceImage: normalized,
+            kernelSize: parameters.morphologyKernelSize
+        )
+        let components = ConnectedComponents.filter(
+            mask: refinedMask,
+            minimumArea: parameters.minPoreArea,
+            maximumArea: parameters.maxPoreArea,
+            sourceImage: normalized,
+            minimumLocalContrast: parameters.minimumPoreContrast
+        )
         let porosity = Double(components.filteredMask.porePixelCount) / Double(components.filteredMask.pixelCount)
         let maskImage = try MaskRenderer.makeMaskImage(from: components.filteredMask)
         let overlayImage = try MaskRenderer.makeOverlayImage(baseImage: analysisInput.displayImage, mask: components.filteredMask)

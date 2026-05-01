@@ -40,6 +40,8 @@ struct AnalysisParameters: Equatable {
     var thresholdMode: ThresholdMode = .adaptive
     var thresholdBias: Int = 0
     var minPoreArea: Int = 24
+    var maxPoreArea: Int?
+    var minimumPoreContrast: Int = 0
     var morphologyKernelSize: Int = 3
     var roiMode: ROIMode = .fullImage
     var roiRectNormalized: CGRect?

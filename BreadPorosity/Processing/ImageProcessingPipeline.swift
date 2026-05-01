@@ -452,12 +452,294 @@ enum BinaryMorphology {
     }
 }
 
+enum PoreRegionRefiner {
+    static func growAndFill(seedMask: BinaryMask, sourceImage: GrayscaleImage, kernelSize: Int) -> BinaryMask {
+        guard seedMask.width == sourceImage.width, seedMask.height == sourceImage.height else {
+            return seedMask
+        }
+
+        let width = seedMask.width
+        let height = seedMask.height
+        let pixelCount = seedMask.pixelCount
+        let padding = max(2, sanitizeKernelSize(kernelSize) + 1)
+        var visited = [UInt8](repeating: 0, count: pixelCount)
+        var outputPixels = seedMask.pixels
+        var queue = [Int]()
+        var componentPixels = [Int]()
+        queue.reserveCapacity(2048)
+        componentPixels.reserveCapacity(2048)
+
+        for startIndex in 0..<pixelCount {
+            guard seedMask.pixels[startIndex] == 1, visited[startIndex] == 0 else {
+                continue
+            }
+
+            let component = collectComponent(
+                from: startIndex,
+                mask: seedMask,
+                visited: &visited,
+                queue: &queue,
+                componentPixels: &componentPixels
+            )
+            let bounds = paddedBounds(for: component, width: width, height: height, padding: padding)
+            let threshold = growthThreshold(
+                component: component,
+                bounds: bounds,
+                sourceImage: sourceImage
+            )
+            let grownPixels = grow(
+                from: component,
+                within: bounds,
+                threshold: threshold,
+                sourceImage: sourceImage
+            )
+            let filledPixels = fillInternalHoles(
+                in: grownPixels,
+                bounds: bounds,
+                width: width,
+                height: height
+            )
+
+            for pixelIndex in filledPixels {
+                outputPixels[pixelIndex] = 1
+            }
+        }
+
+        return BinaryMask(width: width, height: height, pixels: outputPixels)
+    }
+
+    private static func sanitizeKernelSize(_ kernelSize: Int) -> Int {
+        let minimumKernel = max(1, kernelSize)
+        return minimumKernel.isMultiple(of: 2) ? (minimumKernel + 1) : minimumKernel
+    }
+
+    private static func collectComponent(
+        from startIndex: Int,
+        mask: BinaryMask,
+        visited: inout [UInt8],
+        queue: inout [Int],
+        componentPixels: inout [Int]
+    ) -> [Int] {
+        let width = mask.width
+        let height = mask.height
+        let neighborOffsets = [
+            (-1, -1), (0, -1), (1, -1),
+            (-1, 0),           (1, 0),
+            (-1, 1),  (0, 1),  (1, 1)
+        ]
+
+        queue.removeAll(keepingCapacity: true)
+        componentPixels.removeAll(keepingCapacity: true)
+        visited[startIndex] = 1
+        queue.append(startIndex)
+        componentPixels.append(startIndex)
+
+        var queueHead = 0
+        while queueHead < queue.count {
+            let currentIndex = queue[queueHead]
+            queueHead += 1
+            let x = currentIndex % width
+            let y = currentIndex / width
+
+            for (offsetX, offsetY) in neighborOffsets {
+                let nextX = x + offsetX
+                let nextY = y + offsetY
+
+                guard nextX >= 0, nextX < width, nextY >= 0, nextY < height else {
+                    continue
+                }
+
+                let nextIndex = (nextY * width) + nextX
+                guard mask.pixels[nextIndex] == 1, visited[nextIndex] == 0 else {
+                    continue
+                }
+
+                visited[nextIndex] = 1
+                queue.append(nextIndex)
+                componentPixels.append(nextIndex)
+            }
+        }
+
+        return componentPixels
+    }
+
+    private static func paddedBounds(
+        for component: [Int],
+        width: Int,
+        height: Int,
+        padding: Int
+    ) -> (left: Int, top: Int, right: Int, bottom: Int) {
+        var minX = width - 1
+        var minY = height - 1
+        var maxX = 0
+        var maxY = 0
+
+        for pixelIndex in component {
+            let x = pixelIndex % width
+            let y = pixelIndex / width
+            minX = min(minX, x)
+            minY = min(minY, y)
+            maxX = max(maxX, x)
+            maxY = max(maxY, y)
+        }
+
+        return (
+            left: max(0, minX - padding),
+            top: max(0, minY - padding),
+            right: min(width - 1, maxX + padding),
+            bottom: min(height - 1, maxY + padding)
+        )
+    }
+
+    private static func growthThreshold(
+        component: [Int],
+        bounds: (left: Int, top: Int, right: Int, bottom: Int),
+        sourceImage: GrayscaleImage
+    ) -> Int {
+        let componentMean = Double(component.reduce(0) { $0 + Int(sourceImage.pixels[$1]) }) / Double(component.count)
+        var surroundingSum = 0
+        var surroundingCount = 0
+
+        for y in bounds.top...bounds.bottom {
+            for x in bounds.left...bounds.right {
+                if x == bounds.left || x == bounds.right || y == bounds.top || y == bounds.bottom {
+                    surroundingSum += Int(sourceImage[x, y])
+                    surroundingCount += 1
+                }
+            }
+        }
+
+        guard surroundingCount > 0 else {
+            return Int(componentMean.rounded())
+        }
+
+        let surroundingMean = Double(surroundingSum) / Double(surroundingCount)
+        let contrast = max(0, surroundingMean - componentMean)
+        let allowance = max(10, min(42, contrast * 0.65))
+        return min(255, Int((componentMean + allowance).rounded()))
+    }
+
+    private static func grow(
+        from seedPixels: [Int],
+        within bounds: (left: Int, top: Int, right: Int, bottom: Int),
+        threshold: Int,
+        sourceImage: GrayscaleImage
+    ) -> Set<Int> {
+        let width = sourceImage.width
+        let height = sourceImage.height
+        let neighborOffsets = [
+            (-1, -1), (0, -1), (1, -1),
+            (-1, 0),           (1, 0),
+            (-1, 1),  (0, 1),  (1, 1)
+        ]
+        var grown = Set(seedPixels)
+        var queue = seedPixels
+        var queueHead = 0
+
+        while queueHead < queue.count {
+            let currentIndex = queue[queueHead]
+            queueHead += 1
+            let x = currentIndex % width
+            let y = currentIndex / width
+
+            for (offsetX, offsetY) in neighborOffsets {
+                let nextX = x + offsetX
+                let nextY = y + offsetY
+
+                guard nextX >= bounds.left, nextX <= bounds.right, nextY >= bounds.top, nextY <= bounds.bottom else {
+                    continue
+                }
+                guard nextX >= 0, nextX < width, nextY >= 0, nextY < height else {
+                    continue
+                }
+
+                let nextIndex = (nextY * width) + nextX
+                guard !grown.contains(nextIndex), Int(sourceImage.pixels[nextIndex]) <= threshold else {
+                    continue
+                }
+
+                grown.insert(nextIndex)
+                queue.append(nextIndex)
+            }
+        }
+
+        return grown
+    }
+
+    private static func fillInternalHoles(
+        in porePixels: Set<Int>,
+        bounds: (left: Int, top: Int, right: Int, bottom: Int),
+        width: Int,
+        height: Int
+    ) -> Set<Int> {
+        let neighborOffsets = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        var exterior = Set<Int>()
+        var queue = [Int]()
+
+        func enqueueBackground(_ x: Int, _ y: Int) {
+            guard x >= bounds.left, x <= bounds.right, y >= bounds.top, y <= bounds.bottom else {
+                return
+            }
+            let index = (y * width) + x
+            guard !porePixels.contains(index), !exterior.contains(index) else {
+                return
+            }
+            exterior.insert(index)
+            queue.append(index)
+        }
+
+        for x in bounds.left...bounds.right {
+            enqueueBackground(x, bounds.top)
+            enqueueBackground(x, bounds.bottom)
+        }
+        for y in bounds.top...bounds.bottom {
+            enqueueBackground(bounds.left, y)
+            enqueueBackground(bounds.right, y)
+        }
+
+        var queueHead = 0
+        while queueHead < queue.count {
+            let currentIndex = queue[queueHead]
+            queueHead += 1
+            let x = currentIndex % width
+            let y = currentIndex / width
+
+            for (offsetX, offsetY) in neighborOffsets {
+                enqueueBackground(x + offsetX, y + offsetY)
+            }
+        }
+
+        var filled = porePixels
+        for y in bounds.top...bounds.bottom {
+            for x in bounds.left...bounds.right {
+                let index = (y * width) + x
+                if !porePixels.contains(index), !exterior.contains(index) {
+                    filled.insert(index)
+                }
+            }
+        }
+
+        return filled
+    }
+}
+
 enum ConnectedComponents {
-    static func filter(mask: BinaryMask, minimumArea: Int) -> ConnectedComponentSummary {
+    static func filter(
+        mask: BinaryMask,
+        minimumArea: Int,
+        maximumArea: Int? = nil,
+        sourceImage: GrayscaleImage? = nil,
+        minimumLocalContrast: Int = 0
+    ) -> ConnectedComponentSummary {
         let minArea = max(1, minimumArea)
         let width = mask.width
         let height = mask.height
         let pixelCount = mask.pixelCount
+        let maxArea = maximumArea.map { max(minArea, $0) }
+        let contrastImage = sourceImage?.width == width && sourceImage?.height == height
+            ? sourceImage
+            : nil
+        let minContrast = max(0, minimumLocalContrast)
 
         var visited = [UInt8](repeating: 0, count: pixelCount)
         var retainedPixels = [UInt8](repeating: 0, count: pixelCount)
@@ -483,6 +765,11 @@ enum ConnectedComponents {
             componentPixels.removeAll(keepingCapacity: true)
             queue.append(startIndex)
             componentPixels.append(startIndex)
+            var componentIntensitySum = contrastImage.map { Int($0.pixels[startIndex]) } ?? 0
+            var minX = startIndex % width
+            var maxX = minX
+            var minY = startIndex / width
+            var maxY = minY
 
             var queueHead = 0
             while queueHead < queue.count {
@@ -508,11 +795,32 @@ enum ConnectedComponents {
                     visited[nextIndex] = 1
                     queue.append(nextIndex)
                     componentPixels.append(nextIndex)
+                    if let contrastImage {
+                        componentIntensitySum += Int(contrastImage.pixels[nextIndex])
+                    }
+                    minX = min(minX, nextX)
+                    maxX = max(maxX, nextX)
+                    minY = min(minY, nextY)
+                    maxY = max(maxY, nextY)
                 }
             }
 
             guard componentPixels.count >= minArea else {
                 continue
+            }
+            if let maxArea, componentPixels.count > maxArea {
+                continue
+            }
+            if let contrastImage, minContrast > 0 {
+                guard hasLocalContrast(
+                    componentIntensitySum: componentIntensitySum,
+                    componentArea: componentPixels.count,
+                    boundingBox: (minX: minX, minY: minY, maxX: maxX, maxY: maxY),
+                    sourceImage: contrastImage,
+                    minimumLocalContrast: minContrast
+                ) else {
+                    continue
+                }
             }
 
             retainedAreas.append(componentPixels.count)
@@ -547,5 +855,41 @@ enum ConnectedComponents {
             averageArea: averageArea,
             poreAreaCV: poreAreaCV
         )
+    }
+
+    private static func hasLocalContrast(
+        componentIntensitySum: Int,
+        componentArea: Int,
+        boundingBox: (minX: Int, minY: Int, maxX: Int, maxY: Int),
+        sourceImage: GrayscaleImage,
+        minimumLocalContrast: Int
+    ) -> Bool {
+        let width = sourceImage.width
+        let height = sourceImage.height
+        let margin = max(2, min(width, height) / 48)
+        let left = max(0, boundingBox.minX - margin)
+        let top = max(0, boundingBox.minY - margin)
+        let right = min(width - 1, boundingBox.maxX + margin)
+        let bottom = min(height - 1, boundingBox.maxY + margin)
+
+        var surroundingSum = 0
+        var surroundingCount = 0
+        for y in top...bottom {
+            for x in left...right {
+                guard x < boundingBox.minX || x > boundingBox.maxX || y < boundingBox.minY || y > boundingBox.maxY else {
+                    continue
+                }
+                surroundingSum += Int(sourceImage[x, y])
+                surroundingCount += 1
+            }
+        }
+
+        guard surroundingCount > 0 else {
+            return true
+        }
+
+        let componentMean = Double(componentIntensitySum) / Double(componentArea)
+        let surroundingMean = Double(surroundingSum) / Double(surroundingCount)
+        return surroundingMean - componentMean >= Double(minimumLocalContrast)
     }
 }

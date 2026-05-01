@@ -84,6 +84,68 @@ final class ImageProcessingPipelineTests: XCTestCase {
         XCTAssertEqual(evenKernel.pixels, oddKernel.pixels)
     }
 
+    func testPoreRegionRefinerFillsPatchyDarkPoreRegion() {
+        let seedMask = BinaryMask(
+            width: 7,
+            height: 7,
+            pixels: [
+                0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0,
+                0, 0, 1, 0, 1, 0, 0,
+                0, 0, 0, 0, 0, 0, 0,
+                0, 0, 1, 0, 1, 0, 0,
+                0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0,
+            ]
+        )
+        var pixels = [UInt8](repeating: 190, count: 49)
+        for y in 2...4 {
+            for x in 2...4 {
+                pixels[(y * 7) + x] = 80
+            }
+        }
+        let source = GrayscaleImage(width: 7, height: 7, pixels: pixels)
+
+        let refined = PoreRegionRefiner.growAndFill(seedMask: seedMask, sourceImage: source, kernelSize: 3)
+
+        XCTAssertEqual(refined.porePixelCount, 9)
+        for y in 2...4 {
+            for x in 2...4 {
+                XCTAssertEqual(refined[x, y], 1)
+            }
+        }
+    }
+
+    func testPoreRegionRefinerDoesNotExpandIntoBrightCrumb() {
+        let seedMask = BinaryMask(
+            width: 5,
+            height: 5,
+            pixels: [
+                0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0,
+                0, 0, 1, 0, 0,
+                0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0,
+            ]
+        )
+        let source = GrayscaleImage(
+            width: 5,
+            height: 5,
+            pixels: [
+                190, 190, 190, 190, 190,
+                190, 190, 190, 190, 190,
+                190, 190,  70, 190, 190,
+                190, 190, 190, 190, 190,
+                190, 190, 190, 190, 190,
+            ]
+        )
+
+        let refined = PoreRegionRefiner.growAndFill(seedMask: seedMask, sourceImage: source, kernelSize: 3)
+
+        XCTAssertEqual(refined.porePixelCount, 1)
+        XCTAssertEqual(refined[2, 2], 1)
+    }
+
     func testConnectedComponentsFiltersSmallRegionsAndComputesMetrics() {
         let mask = BinaryMask(
             width: 6,
@@ -124,5 +186,60 @@ final class ImageProcessingPipelineTests: XCTestCase {
         XCTAssertEqual(summary.poreCount, 1)
         XCTAssertEqual(summary.averageArea, 2, accuracy: 0.001)
         XCTAssertEqual(summary.filteredMask.porePixelCount, 2)
+    }
+
+    func testConnectedComponentsRejectsRegionsAboveMaximumArea() {
+        let mask = BinaryMask(
+            width: 6,
+            height: 4,
+            pixels: [
+                1, 1, 0, 0, 0, 0,
+                1, 1, 0, 1, 1, 1,
+                0, 0, 0, 1, 1, 1,
+                0, 0, 0, 1, 1, 1,
+            ]
+        )
+
+        let summary = ConnectedComponents.filter(mask: mask, minimumArea: 1, maximumArea: 5)
+
+        XCTAssertEqual(summary.poreCount, 1)
+        XCTAssertEqual(summary.filteredMask.porePixelCount, 4)
+        XCTAssertEqual(summary.filteredMask[0, 0], 1)
+        XCTAssertEqual(summary.filteredMask[3, 1], 0)
+    }
+
+    func testConnectedComponentsRejectsWeakContrastRegions() {
+        let mask = BinaryMask(
+            width: 8,
+            height: 4,
+            pixels: [
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 1, 1, 0, 0, 1, 1, 0,
+                0, 1, 1, 0, 0, 1, 1, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+            ]
+        )
+        let source = GrayscaleImage(
+            width: 8,
+            height: 4,
+            pixels: [
+                180, 180, 180, 180, 180, 180, 180, 180,
+                180, 130, 130, 180, 180, 172, 172, 180,
+                180, 130, 130, 180, 180, 172, 172, 180,
+                180, 180, 180, 180, 180, 180, 180, 180,
+            ]
+        )
+
+        let summary = ConnectedComponents.filter(
+            mask: mask,
+            minimumArea: 1,
+            sourceImage: source,
+            minimumLocalContrast: 18
+        )
+
+        XCTAssertEqual(summary.poreCount, 1)
+        XCTAssertEqual(summary.filteredMask.porePixelCount, 4)
+        XCTAssertEqual(summary.filteredMask[1, 1], 1)
+        XCTAssertEqual(summary.filteredMask[5, 1], 0)
     }
 }
