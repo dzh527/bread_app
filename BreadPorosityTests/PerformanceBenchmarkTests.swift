@@ -431,7 +431,7 @@ final class PerformanceBenchmarkTests: XCTestCase {
         Self.emit("")
         Self.emit("=== Cell crop resolution, cell \(region.cellIndex.label) ===")
         Self.emit("  cell rect in processed frame      \(Int(cellRect.width))x\(Int(cellRect.height)) pt")
-        Self.emit("  cellGrayscale (used for minArea)  "
+        Self.emit("  cellGrayscale (slice ROI only)    "
             + "\(cellGrayscale.width)x\(cellGrayscale.height) = \(cellGrayscale.pixelCount) px")
         Self.emit("  cellImage UIGraphicsImageRenderer scale = \(cellImage.scale)")
         if let cellCG = cellImage.cgImage {
@@ -439,10 +439,15 @@ final class PerformanceBenchmarkTests: XCTestCase {
         }
         Self.emit("  grayscale actually analysed       "
             + "\(processed.grayscale.width)x\(processed.grayscale.height) = \(processed.grayscale.pixelCount) px")
-        let autoMinPoreArea = max(24, cellGrayscale.pixelCount / 2500)
-        Self.emit("  autoMinPoreArea = max(24, \(cellGrayscale.pixelCount)/2500) = \(autoMinPoreArea) px")
+        // The minimum pore area is now derived by analyzeSynchronously from the region it
+        // actually analyses, so this reports the same expression rather than a
+        // pre-raster pixel count that would be calibrated on the wrong image.
+        let floor = 24
+        let ratio = 1.0 / 10_000
+        let effective = max(floor, Int(Double(processed.grayscale.pixelCount) * ratio))
         Self.emit(String(
-            format: "  ...applied to an image %.1fx the area it was calibrated for",
+            format: "  minPoreArea = max(%d, %d px x 1/10000) = %d px  (%.1fx the pre-raster cell)",
+            floor, processed.grayscale.pixelCount, effective,
             Double(processed.grayscale.pixelCount) / Double(cellGrayscale.pixelCount)
         ))
     }

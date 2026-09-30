@@ -27,6 +27,20 @@ extension BreadAnalyzing {
 struct BreadAnalyzer: BreadAnalyzing {
     private let maxProcessingDimension = 1400
 
+    /// Minimum pore area as a fraction of the analysed region, and the absolute noise
+    /// floor it is combined with.
+    ///
+    /// Measured on phantoms of identical true porosity imaged at two resolutions: the
+    /// `minArea` at which pores start being discarded scales with *area*, not with
+    /// resolution — signal stayed intact through 24 px at 160,000 px of region and
+    /// through 96 px at 640,000 px, a 4x ratio for a 4x area. So the quantity is a
+    /// fraction. 1/10,000 sits comfortably inside the safe range at both sizes and
+    /// leaves the effective value on a real 4x6 cell (27 px) close to what the previous
+    /// floor-dominated formula produced (24 px), so this corrects the derivation without
+    /// moving the validated numbers.
+    private static let minimumPoreAreaRatio = 1.0 / 10_000
+    private static let minimumPoreAreaFloor = 24
+
     func analyze(image: UIImage, parameters: AnalysisParameters) async throws -> BreadAnalysisResult {
         try await withCheckedThrowingContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async {
@@ -102,7 +116,6 @@ struct BreadAnalyzer: BreadAnalyzing {
                 )
                 let cellImage = cropUIImage(fullInput.displayImage, to: cellRect)
 
-                let autoMinPoreArea = max(24, cellGrayscale.pixelCount / 2500)
                 let crumbArea = crumbROIAreaPixels(
                     crumbROI,
                     imageWidth: cellGrayscale.width,
@@ -111,7 +124,11 @@ struct BreadAnalyzer: BreadAnalyzing {
                 var parameters = AnalysisParameters()
                 parameters.thresholdMode = .adaptive
                 parameters.thresholdBias = 0
-                parameters.minPoreArea = autoMinPoreArea
+                // Derived from the region actually analysed, not from this pre-raster
+                // cell — those differ by ~5x in area. `analyzeSynchronously` applies the
+                // ratio once it knows the real size.
+                parameters.minPoreAreaRatio = Self.minimumPoreAreaRatio
+                parameters.minPoreArea = Self.minimumPoreAreaFloor
                 parameters.maxPoreArea = nil
                 parameters.minimumPoreContrast = 0
                 parameters.morphologyKernelSize = 5
@@ -168,6 +185,16 @@ struct BreadAnalyzer: BreadAnalyzing {
             maxDimension: maxProcessingDimension,
             roiRectNormalized: parameters.roiRectNormalized
         )
+
+        // Only here is the analysed region's true pixel count known, so a ratio-based
+        // minimum area can only be resolved now. Resolving it earlier — from the
+        // caller's image — is what made the value depend on the raster scale.
+        var parameters = parameters
+        if let ratio = parameters.minPoreAreaRatio {
+            let regionPixels = analysisInput.grayscale.pixelCount
+            parameters.minPoreArea = max(parameters.minPoreArea, Int(Double(regionPixels) * ratio))
+        }
+
         let backgroundRemoved = BackgroundRemover.removeBackground(analysisInput.grayscale)
         let normalized = ImagePreprocessor.normalize(backgroundRemoved)
         let segmentedMask = Thresholding.segment(normalized, parameters: parameters)

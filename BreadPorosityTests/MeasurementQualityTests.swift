@@ -423,16 +423,58 @@ final class MeasurementQualityTests: XCTestCase {
         runChain(from: normalizedWithout, label: "chain without bg removal")
     }
 
+    /// Should `minPoreArea` be an absolute pixel count, or a fraction of the analysed
+    /// area? The two models differ by 4x between a 400px and an 800px image, and the
+    /// grid path currently calibrates on one resolution while applying to another.
+    ///
+    /// The same bread is imaged at two resolutions with pore radii scaled to match, then
+    /// swept over `minPoreArea`. If the value that recovers the truth is roughly
+    /// *constant*, the floor model is right and the derivation just needs the right pixel
+    /// count. If it scales with area, the ratio is the real quantity.
+    func testMinPoreAreaScaling() async throws {
+        report.emit("")
+        report.emit("=== How should minPoreArea scale with resolution? ===")
+        report.emit("  same bread at two resolutions, pore radii scaled to match")
+
+        let cases: [(side: Int, radius: ClosedRange<Double>)] = [
+            (400, 2.5...6.0),
+            (800, 5.0...12.0)
+        ]
+
+        for (side, radius) in cases {
+            let phantom = PhantomFactory.make(
+                width: side, height: side, targetPorosity: 0.10, poreRadius: radius, seed: 0x11AA
+            )
+            report.emit("")
+            report.emit(String(
+                format: "  %dx%d = %d px   true %.2f%%   pores radius %.1f-%.1f px",
+                side, side, side * side, phantom.truePorosity * 100,
+                radius.lowerBound, radius.upperBound
+            ))
+            report.emit("    minArea   measured %    error (pp)   pores")
+
+            for minArea in [4, 8, 16, 24, 48, 96, 192, 384] {
+                let measured = try await measure(phantom, sauvolaK: 0.34, minPoreArea: minArea)
+                report.emit(String(
+                    format: "    %7d    %9.2f    %+9.2f   %6d",
+                    minArea, measured.porosity * 100,
+                    (measured.porosity - phantom.truePorosity) * 100, measured.poreCount
+                ))
+            }
+        }
+    }
+
     private func measure(
         _ phantom: Phantom,
         sauvolaK: Double,
-        mode: ThresholdMode = .adaptive
+        mode: ThresholdMode = .adaptive,
+        minPoreArea: Int = 24
     ) async throws -> Measurement {
         var parameters = AnalysisParameters()
         parameters.thresholdMode = mode
         parameters.sauvolaK = sauvolaK
         parameters.morphologyKernelSize = 3
-        parameters.minPoreArea = 24
+        parameters.minPoreArea = minPoreArea
         parameters.roiMode = .fullImage
         parameters.roiRectNormalized = nil
 

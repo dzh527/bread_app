@@ -45,6 +45,11 @@ struct AnalysisParameters: Equatable {
     /// crumb stops being classed as pore. See `Thresholding.adaptiveThreshold`.
     var sauvolaK: Double = 0.34
     var minPoreArea: Int = 24
+    /// When set, a pore must also be at least this fraction of the analysed region's
+    /// area. Pore size is a *relative* quantity — a minimum that is right at one
+    /// resolution is wrong at another — so the grid path derives its minimum from this
+    /// rather than from an absolute pixel count. `minPoreArea` remains the noise floor.
+    var minPoreAreaRatio: Double?
     var maxPoreArea: Int?
     var minimumPoreContrast: Int = 0
     var morphologyKernelSize: Int = 3
