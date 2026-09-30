@@ -38,7 +38,12 @@ enum ROIMode: String, CaseIterable, Identifiable {
 
 struct AnalysisParameters: Equatable {
     var thresholdMode: ThresholdMode = .adaptive
+    /// Additive grayscale offset applied to the adaptive threshold. Positive values
+    /// classify more pixels as pore.
     var thresholdBias: Int = 0
+    /// Sauvola `k`. Higher values tighten the adaptive threshold, so flat low-contrast
+    /// crumb stops being classed as pore. See `Thresholding.adaptiveThreshold`.
+    var sauvolaK: Double = 0.34
     var minPoreArea: Int = 24
     var maxPoreArea: Int?
     var minimumPoreContrast: Int = 0

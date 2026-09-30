@@ -311,35 +311,60 @@ enum Thresholding {
     static func segment(_ image: GrayscaleImage, parameters: AnalysisParameters) -> BinaryMask {
         switch parameters.thresholdMode {
         case .adaptive:
-            return adaptiveThreshold(image, bias: parameters.thresholdBias)
+            return adaptiveThreshold(image, parameters: parameters)
         case .otsu:
             return otsuThreshold(image, bias: parameters.thresholdBias)
         }
     }
 
-    private static func adaptiveThreshold(_ image: GrayscaleImage, bias: Int) -> BinaryMask {
+    /// Sauvola local thresholding:
+    ///
+    ///     T = mean · (1 + k · (std / R − 1)) + bias
+    ///
+    /// The previous implementation thresholded at `mean − fixedOffset`, where the
+    /// offset was a global constant in the 6…18 grey-level range. That is blind to
+    /// local contrast: on a fine-crumbed loaf the grain texture's own local standard
+    /// deviation exceeds the offset, so the entire crumb was classified as pore and
+    /// the mask showed a uniform speckle rather than discrete holes.
+    ///
+    /// Driving the threshold from the local standard deviation instead makes flat,
+    /// low-contrast regions collapse toward `mean · (1 − k)` — well below the crumb,
+    /// so grain is rejected — while regions containing a genuine hole have a raised
+    /// std that opens the threshold back up.
+    ///
+    /// `R` is the conventional dynamic range of the standard deviation for 8-bit
+    /// input; `k` is exposed as `AnalysisParameters.sauvolaK`.
+    private static func adaptiveThreshold(_ image: GrayscaleImage, parameters: AnalysisParameters) -> BinaryMask {
         let localRadius = max(6, min(image.width, image.height) / 96)
         let integral = image.integralImage()
-        let standardDeviation = image.meanAndStandardDeviation().standardDeviation
-        let baseOffset = max(6, min(18, Int((standardDeviation * 0.18).rounded())))
-        let adjustedOffset = max(0, min(48, baseOffset - bias))
+        let squaredIntegral = IntegralImage(squaredSource: image)
+        let dynamicRange = 128.0
+        let k = max(0.0, min(1.0, parameters.sauvolaK))
+        let bias = Double(parameters.thresholdBias)
         var maskPixels = [UInt8](repeating: 0, count: image.pixelCount)
 
         for y in 0..<image.height {
             for x in 0..<image.width {
-                let regionSum = integral.sum(
-                    x0: x - localRadius,
-                    y0: y - localRadius,
-                    x1: x + localRadius + 1,
-                    y1: y + localRadius + 1
-                )
                 let clippedLeft = max(0, x - localRadius)
                 let clippedTop = max(0, y - localRadius)
                 let clippedRight = min(image.width, x + localRadius + 1)
                 let clippedBottom = min(image.height, y + localRadius + 1)
                 let area = max(1, (clippedRight - clippedLeft) * (clippedBottom - clippedTop))
-                let localMean = regionSum / area
-                maskPixels[(y * image.width) + x] = Int(image[x, y]) < (localMean - adjustedOffset) ? 1 : 0
+
+                let regionSum = integral.sum(
+                    x0: clippedLeft, y0: clippedTop, x1: clippedRight, y1: clippedBottom
+                )
+                let regionSumSquared = squaredIntegral.sum(
+                    x0: clippedLeft, y0: clippedTop, x1: clippedRight, y1: clippedBottom
+                )
+
+                let count = Double(area)
+                let localMean = Double(regionSum) / count
+                let variance = max(0, (Double(regionSumSquared) / count) - (localMean * localMean))
+                let localStandardDeviation = variance.squareRoot()
+
+                let threshold = localMean * (1 + k * (localStandardDeviation / dynamicRange - 1)) + bias
+                maskPixels[(y * image.width) + x] = Double(image[x, y]) < threshold ? 1 : 0
             }
         }
 

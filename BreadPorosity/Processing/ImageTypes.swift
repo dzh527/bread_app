@@ -183,6 +183,27 @@ struct IntegralImage {
         values = integral
     }
 
+    /// Integral of squared intensities, so local variance comes out of two lookups as
+    /// `E[x²] - E[x]²`. Values reach 255² per pixel, which stays well inside `Int`.
+    init(squaredSource: GrayscaleImage) {
+        width = squaredSource.width
+        height = squaredSource.height
+        storageWidth = squaredSource.width + 1
+
+        var integral = [Int](repeating: 0, count: (squaredSource.width + 1) * (squaredSource.height + 1))
+
+        for y in 0..<squaredSource.height {
+            var rowSum = 0
+            for x in 0..<squaredSource.width {
+                let value = Int(squaredSource[x, y])
+                rowSum += value * value
+                integral[((y + 1) * storageWidth) + (x + 1)] = integral[(y * storageWidth) + (x + 1)] + rowSum
+            }
+        }
+
+        values = integral
+    }
+
     func sum(x0: Int, y0: Int, x1: Int, y1: Int) -> Int {
         let left = max(0, min(x0, width))
         let top = max(0, min(y0, height))
