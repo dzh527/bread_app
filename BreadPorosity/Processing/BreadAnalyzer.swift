@@ -143,7 +143,9 @@ struct BreadAnalyzer: BreadAnalyzing {
     }
 
     private func cropUIImage(_ image: UIImage, to rect: CGRect) -> UIImage {
-        let renderer = UIGraphicsImageRenderer(size: rect.size)
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = AnalysisImageFactory.analysisRasterScale
+        let renderer = UIGraphicsImageRenderer(size: rect.size, format: format)
         return renderer.image { _ in
             image.draw(at: CGPoint(x: -rect.origin.x, y: -rect.origin.y))
         }

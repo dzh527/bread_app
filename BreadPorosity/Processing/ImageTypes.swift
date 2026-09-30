@@ -240,6 +240,17 @@ enum AnalysisImageFactoryError: LocalizedError {
 enum AnalysisImageFactory {
     private static let ciContext = CIContext(options: nil)
 
+    /// Raster scale used when cropping images for analysis.
+    ///
+    /// `UIGraphicsImageRenderer(size:)` defaults to the *screen* scale, which made the
+    /// working resolution — and therefore the analysis itself — depend on the device.
+    /// It is pinned here instead, and pinned high deliberately: the pipeline's
+    /// parameters are denominated in pixels, and the measurement collapses at low
+    /// resolution (a 175 px crumb crop loses its entire mask to the kernel-5
+    /// morphology, where the same cell analysed at ~525 px reads ~9%). Changing this
+    /// value changes the answer and is a re-tuning exercise, not a free parameter.
+    static let analysisRasterScale: CGFloat = 3
+
     static func makeInput(from image: UIImage, maxDimension: Int, roiRectNormalized: CGRect? = nil) throws -> AnalysisImageInput {
         guard let sourceCGImage = cgImage(from: image) else {
             throw AnalysisImageFactoryError.unsupportedImage
@@ -320,7 +331,9 @@ enum AnalysisImageFactory {
 
 private extension UIImage {
     func cropped(to cropRect: CGRect) -> UIImage {
-        let renderer = UIGraphicsImageRenderer(size: cropRect.size)
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = AnalysisImageFactory.analysisRasterScale
+        let renderer = UIGraphicsImageRenderer(size: cropRect.size, format: format)
         return renderer.image { _ in
             draw(at: CGPoint(x: -cropRect.origin.x, y: -cropRect.origin.y))
         }
