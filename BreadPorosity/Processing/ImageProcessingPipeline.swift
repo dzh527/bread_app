@@ -22,7 +22,16 @@ enum BackgroundRemover {
         return result
     }
 
-    private static func detectBackground(_ image: GrayscaleImage) -> [UInt8] {
+    /// Fraction of the frame above which the flood fill cannot have found a real
+    /// background. A genuine surround — a tray, a bench — is a partial region touching
+    /// the image edge, with the bread as a distinct blob inside it. When *everything*
+    /// reachable from the edge comes back as "background", the fill has selected the
+    /// bread itself, and filling it would overwrite the crumb and erase the pores.
+    private static let maximumBackgroundCoverage = 0.75
+
+    /// Internal rather than private so `MeasurementQualityTests` can measure how much of
+    /// each kind of image the detector claims — the threshold above is chosen from that.
+    static func detectBackground(_ image: GrayscaleImage) -> [UInt8] {
         let threshold = otsuThreshold(image)
         let isBreadDarkerThanBackground = estimateBreadIsDarker(image, threshold: threshold)
 
@@ -39,8 +48,25 @@ enum BackgroundRemover {
         let closed = morphologicalClose(foreground, width: image.width, height: image.height, radius: closingRadius)
 
         var background = floodFillFromEdges(closed, width: image.width, height: image.height)
-        let erosionRadius = max(2, min(image.width, image.height) / 100)
-        background = dilateBackground(background, width: image.width, height: image.height, radius: erosionRadius)
+
+        // Degenerate case: the fill swallowed the frame, so it selected the bread rather
+        // than a background behind it. Report "no background" instead of filling the
+        // crumb, which would erase the pores.
+        let coverage = Double(background.reduce(0) { $0 + Int($1) }) / Double(image.pixelCount)
+        guard coverage <= maximumBackgroundCoverage else {
+            return [UInt8](repeating: 0, count: image.pixelCount)
+        }
+
+        // Grow the fill by a fringe, so a soft-edged surround is covered fully. This
+        // must stay small: it reaches *into* whatever borders the background, and when
+        // the detector has picked the crumb rather than a surround, every pixel of it
+        // eats a fixed rim off every pore — which costs small pores disproportionately
+        // and shows up as the non-monotonic structure bias in Control 3. It was
+        // previously `min(w,h)/100`, i.e. up to 14 px on a full-size frame.
+        let fringeRadius = min(2, min(image.width, image.height) / 400)
+        if fringeRadius > 0 {
+            background = dilateBackground(background, width: image.width, height: image.height, radius: fringeRadius)
+        }
 
         return background
     }
