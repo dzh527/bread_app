@@ -860,6 +860,183 @@ final class PerformanceBenchmarkTests: XCTestCase {
         }
     }
 
+    /// Is an outlier the bread, or the detector?
+    ///
+    /// For each cell this compares the app's porosity against a deliberately independent
+    /// estimate: the fraction of crumb-ROI pixels more than one standard deviation below
+    /// the local mean, computed straight from the pixels with none of the pipeline's
+    /// machinery. If the two agree across all 24 cells the outliers are real crumb
+    /// variation; if a cell disagrees, the pipeline is misreading it.
+    func testOutlierCrossCheck() async throws {
+        guard let image = UIImage(contentsOfFile: Self.realPhotoPath) else {
+            XCTFail("missing real photo")
+            return
+        }
+
+        let input = try AnalysisImageFactory.makeInput(from: image, maxDimension: Self.processingDimension)
+        let frame = input.grayscale
+        let region = (GridSlicer.detectGridContentROI(in: frame)
+            ?? CGRect(x: 0, y: 0, width: 1, height: 1)).clampedToUnit(minSize: 0.05)
+        let cells = try GridSlicer.sliceCells(
+            imageWidth: frame.width, imageHeight: frame.height,
+            gridSpec: GridSpec(rows: 4, columns: 6), boundsNormalized: region
+        )
+
+        let result = try await BreadAnalyzer().analyzeGrid(
+            image: image, gridSpec: GridSpec(rows: 4, columns: 6)
+        )
+
+        Self.emit("")
+        Self.emit("=== Outlier cross-check: app porosity vs an independent dark-fraction ===")
+        Self.emit("  cell    app %    dark-frac %    delta")
+
+        var pairs: [(app: Double, independent: Double)] = []
+        for cell in result.allResults {
+            let region = cells[cell.cellIndex.row][cell.cellIndex.column]
+            let cellGrayscale = frame.cropped(to: region.pixelRect)
+            let roi = cell.crumbROINormalized
+                .denormalized(in: CGRect(x: 0, y: 0, width: cellGrayscale.width, height: cellGrayscale.height))
+                .integral
+                .intersection(CGRect(x: 0, y: 0, width: cellGrayscale.width, height: cellGrayscale.height))
+            guard roi.width > 4, roi.height > 4 else { continue }
+
+            var values: [UInt8] = []
+            var sum = 0.0
+            for y in Int(roi.minY)..<Int(roi.maxY) {
+                for x in Int(roi.minX)..<Int(roi.maxX) {
+                    let value = cellGrayscale[x, y]
+                    values.append(value)
+                    sum += Double(value)
+                }
+            }
+            let mean = sum / Double(values.count)
+            let variance = values.reduce(0.0) { $0 + (Double($1) - mean) * (Double($1) - mean) }
+                / Double(values.count)
+            let standardDeviation = variance.squareRoot()
+            let darkCount = values.filter { Double($0) < mean - standardDeviation }.count
+            let darkFraction = Double(darkCount) / Double(values.count)
+
+            let app = cell.analysisResult.porosity
+            pairs.append((app, darkFraction))
+            let marker = abs(app - darkFraction) > 0.05 ? "  <-- disagreement" : ""
+            Self.emit(String(
+                format: "  %@    %6.1f      %6.1f       %+6.1f%@",
+                cell.cellIndex.label, app * 100, darkFraction * 100,
+                (app - darkFraction) * 100, marker
+            ))
+        }
+
+        // Rank agreement: do the two orderings of the 24 cells match?
+        let appRanks = Self.ranks(pairs.map(\.app))
+        let independentRanks = Self.ranks(pairs.map(\.independent))
+        let n = Double(pairs.count)
+        let meanRank = (n + 1) / 2
+        var covariance = 0.0, appVariance = 0.0, independentVariance = 0.0
+        for index in pairs.indices {
+            let a = appRanks[index] - meanRank
+            let b = independentRanks[index] - meanRank
+            covariance += a * b
+            appVariance += a * a
+            independentVariance += b * b
+        }
+        let correlation = covariance / max(.ulpOfOne, (appVariance * independentVariance).squareRoot())
+        Self.emit(String(format: "  rank correlation over %d cells: %.3f", pairs.count, correlation))
+    }
+
+    private static func ranks(_ values: [Double]) -> [Double] {
+        let order = values.indices.sorted { values[$0] < values[$1] }
+        var ranks = [Double](repeating: 0, count: values.count)
+        for (position, index) in order.enumerated() {
+            ranks[index] = Double(position + 1)
+        }
+        return ranks
+    }
+
+    /// R1C5's overlay shows a straight full-height band along its ROI's right edge — not
+    /// something bread can produce. This walks that cell's stages and writes each one out,
+    /// so the stage the band appears in is visible rather than inferred.
+    func testOutlierCellStageTrace() async throws {
+        guard let image = UIImage(contentsOfFile: Self.realPhotoPath) else { return }
+        let input = try AnalysisImageFactory.makeInput(from: image, maxDimension: Self.processingDimension)
+        let frame = input.grayscale
+        let region = (GridSlicer.detectGridContentROI(in: frame)
+            ?? CGRect(x: 0, y: 0, width: 1, height: 1)).clampedToUnit(minSize: 0.05)
+        let cells = try GridSlicer.sliceCells(
+            imageWidth: frame.width, imageHeight: frame.height,
+            gridSpec: GridSpec(rows: 4, columns: 6), boundsNormalized: region
+        )
+        let result = try await BreadAnalyzer().analyzeGrid(
+            image: image, gridSpec: GridSpec(rows: 4, columns: 6)
+        )
+
+        Self.emit("")
+        Self.emit("=== Stage trace per cell (density at each stage) ===")
+        Self.emit("  cell   bgCover   afterThreshold   afterMorph   afterRefine   final   app%")
+
+        var panels: [OverlayPanel] = []
+        for cell in result.allResults {
+            let region = cells[cell.cellIndex.row][cell.cellIndex.column]
+            let cellGrayscale = frame.cropped(to: region.pixelRect)
+            let cellBounds = CGRect(x: 0, y: 0, width: cellGrayscale.width, height: cellGrayscale.height)
+            let crumbRect = cell.crumbROINormalized.denormalized(in: cellBounds).integral.intersection(cellBounds)
+            guard crumbRect.width > 8, crumbRect.height > 8 else { continue }
+            let crumb = cellGrayscale.cropped(to: crumbRect)
+
+            func density(_ mask: BinaryMask) -> Double {
+                Double(mask.porePixelCount) / Double(mask.pixelCount) * 100
+            }
+
+            let backgroundMask = BackgroundRemover.detectBackground(crumb)
+            let bgCoverage = Double(backgroundMask.reduce(0) { $0 + Int($1) }) / Double(crumb.pixelCount) * 100
+
+            let backgroundRemoved = BackgroundRemover.removeBackground(crumb)
+            let normalized = ImagePreprocessor.normalize(backgroundRemoved)
+
+            var parameters = AnalysisParameters()
+            parameters.thresholdMode = .adaptive
+            parameters.morphologyKernelSize = 5
+            parameters.minPoreArea = 24
+
+            let segmented = Thresholding.segment(normalized, parameters: parameters)
+            let cleaned = BinaryMorphology.clean(segmented, kernelSize: parameters.morphologyKernelSize)
+            let refined = PoreRegionRefiner.growAndFill(
+                seedMask: cleaned, sourceImage: normalized, kernelSize: parameters.morphologyKernelSize
+            )
+            let components = ConnectedComponents.filter(
+                mask: refined, minimumArea: parameters.minPoreArea, maximumArea: nil,
+                sourceImage: normalized, minimumLocalContrast: 0
+            )
+
+            let appPorosity = cell.analysisResult.porosity * 100
+            let marker = abs(appPorosity - 8.0) > 2.0 ? "  <-- outlier" : ""
+            Self.emit(String(
+                format: "  %@   %6.1f%%   %6.1f%%   %6.1f%%   %6.1f%%   %6.1f%%   %5.1f%%%@",
+                cell.cellIndex.label, bgCoverage,
+                density(segmented), density(cleaned), density(refined),
+                density(components.filteredMask), appPorosity, marker
+            ))
+
+            if cell.cellIndex.label == "R1C5" || cell.cellIndex.label == "R3C4" {
+                for (name, mask) in [("threshold", segmented), ("final", components.filteredMask)] {
+                    if let rendered = try? MaskRenderer.makeMaskImage(from: mask) {
+                        panels.append(OverlayPanel(
+                            caption: "\(cell.cellIndex.label) \(name)  \(String(format: "%.1f%%", density(mask)))",
+                            overlay: rendered
+                        ))
+                    }
+                }
+            }
+        }
+
+        if !panels.isEmpty {
+            let montage = Self.composeMontage(panels: panels, columns: 2)
+            if let png = montage.pngData() {
+                try png.write(to: URL(fileURLWithPath: "/tmp/bread_outlier_trace.png"))
+                Self.emit("  montage -> /tmp/bread_outlier_trace.png")
+            }
+        }
+    }
+
     private static let realPhotoPath = "/tmp/bread_real_photo.jpg"
 
     private static func loadRealPhoto() -> UIImage? {
