@@ -29,6 +29,9 @@
 		7A4D0E5B2F8C100100000016 /* GridCellDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000119 /* GridCellDetailView.swift */; };
 		7A4D0E5B2F8C100100000017 /* GridSlicerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C10010000011A /* GridSlicerTests.swift */; };
 		7A4D0E5B2F8C100100000018 /* GridAnalysisTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C10010000011B /* GridAnalysisTests.swift */; };
+		DA8F33892FA4F4050015FA10 /* PerformanceBenchmarkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA8F33892FA4F4050015FA11 /* PerformanceBenchmarkTests.swift */; };
+		DA8F33892FA4F4050015FA20 /* PhantomFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA8F33892FA4F4050015FA21 /* PhantomFactory.swift */; };
+		DA8F33892FA4F4050015FA22 /* MeasurementQualityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA8F33892FA4F4050015FA23 /* MeasurementQualityTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,6 +70,9 @@
 		7A4D0E5B2F8C100100000119 /* GridCellDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridCellDetailView.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C10010000011A /* GridSlicerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridSlicerTests.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C10010000011B /* GridAnalysisTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridAnalysisTests.swift; sourceTree = "<group>"; };
+		DA8F33892FA4F4050015FA11 /* PerformanceBenchmarkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceBenchmarkTests.swift; sourceTree = "<group>"; };
+		DA8F33892FA4F4050015FA21 /* PhantomFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhantomFactory.swift; sourceTree = "<group>"; };
+		DA8F33892FA4F4050015FA23 /* MeasurementQualityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementQualityTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,6 +100,7 @@
 				7A4D0E5B2F8C100100000302 /* BreadPorosity */,
 				7A4D0E5B2F8C10010000030A /* BreadPorosityTests */,
 				7A4D0E5B2F8C100100000309 /* Products */,
+				DA8F33892FA4F4050015FA08 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -125,16 +132,6 @@
 				7A4D0E5B2F8C10010000030B /* GridAnalysis */,
 			);
 			path = Features;
-			sourceTree = "<group>";
-		};
-		7A4D0E5B2F8C10010000030B /* GridAnalysis */ = {
-			isa = PBXGroup;
-			children = (
-				7A4D0E5B2F8C100100000117 /* GridAnalysisViewModel.swift */,
-				7A4D0E5B2F8C100100000118 /* GridAnalysisView.swift */,
-				7A4D0E5B2F8C100100000119 /* GridCellDetailView.swift */,
-			);
-			path = GridAnalysis;
 			sourceTree = "<group>";
 		};
 		7A4D0E5B2F8C100100000305 /* Analysis */ = {
@@ -194,8 +191,29 @@
 				7A4D0E5B2F8C100100000111 /* BreadAnalyzerTests.swift */,
 				7A4D0E5B2F8C10010000011A /* GridSlicerTests.swift */,
 				7A4D0E5B2F8C10010000011B /* GridAnalysisTests.swift */,
+				DA8F33892FA4F4050015FA11 /* PerformanceBenchmarkTests.swift */,
+				DA8F33892FA4F4050015FA21 /* PhantomFactory.swift */,
+				DA8F33892FA4F4050015FA23 /* MeasurementQualityTests.swift */,
 			);
 			path = BreadPorosityTests;
+			sourceTree = "<group>";
+		};
+		7A4D0E5B2F8C10010000030B /* GridAnalysis */ = {
+			isa = PBXGroup;
+			children = (
+				7A4D0E5B2F8C100100000117 /* GridAnalysisViewModel.swift */,
+				7A4D0E5B2F8C100100000118 /* GridAnalysisView.swift */,
+				7A4D0E5B2F8C100100000119 /* GridCellDetailView.swift */,
+			);
+			path = GridAnalysis;
+			sourceTree = "<group>";
+		};
+		DA8F33892FA4F4050015FA08 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				7A4D0E5B2F8C100100000112 /* XCTest.framework */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -324,6 +342,9 @@
 				7A4D0E5B2F8C100100000010 /* BreadAnalyzerTests.swift in Sources */,
 				7A4D0E5B2F8C100100000017 /* GridSlicerTests.swift in Sources */,
 				7A4D0E5B2F8C100100000018 /* GridAnalysisTests.swift in Sources */,
+				DA8F33892FA4F4050015FA10 /* PerformanceBenchmarkTests.swift in Sources */,
+				DA8F33892FA4F4050015FA20 /* PhantomFactory.swift in Sources */,
+				DA8F33892FA4F4050015FA22 /* MeasurementQualityTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -393,6 +414,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"BreadPorosity/Resources/Preview Content\"";
+				DEVELOPMENT_TEAM = 2TFM3F3694;
 				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = BreadPorosity/Resources/Info.plist;
@@ -402,7 +424,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.BreadPorosity;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dingzhao.BreadPorosity;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -420,6 +442,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"BreadPorosity/Resources/Preview Content\"";
+				DEVELOPMENT_TEAM = 2TFM3F3694;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = BreadPorosity/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -428,7 +451,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.BreadPorosity;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dingzhao.BreadPorosity;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
