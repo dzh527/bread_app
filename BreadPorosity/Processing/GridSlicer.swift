@@ -24,6 +24,9 @@ struct CellRegion {
 enum GridSlicer {
     private static let minimumCellDimension = 48
     private static let minimumTrimmedROIDimension = 24
+    /// Normalized coverage above which a detected slice ROI is treated as filling the
+    /// frame outright — i.e. there is no surround, so there is no crust ring to remove.
+    private static let wholeFrameCoverageThreshold: CGFloat = 0.98
 
     static func sliceCells(
         imageWidth: Int,
@@ -219,6 +222,23 @@ enum GridSlicer {
     ) -> CGRect {
         guard imageWidth > 0, imageHeight > 0 else {
             return CGRect(x: 0, y: 0, width: 1, height: 1)
+        }
+
+        // A slice that already fills the frame has no surround, so there is no crust
+        // ring to remove — trimming would only discard real crumb. That is the macro
+        // close-up case, where the frame is crumb edge to edge and the 11% inset was
+        // throwing away ~39% of the area while measuring a different field of view than
+        // the one the user selected.
+        //
+        // A *failed* detection is a different situation and arrives as `nil`; it keeps
+        // the ring-trimming fallback below, because with no detected slice there is no
+        // evidence either way and the previous heuristic is the safer default.
+        if let sliceROINormalized {
+            let detected = sliceROINormalized.clampedToUnit(minSize: 0.05)
+            if detected.width >= wholeFrameCoverageThreshold,
+               detected.height >= wholeFrameCoverageThreshold {
+                return detected
+            }
         }
 
         let imageBounds = CGRect(x: 0, y: 0, width: CGFloat(imageWidth), height: CGFloat(imageHeight))

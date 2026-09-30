@@ -163,6 +163,37 @@ final class GridSlicerTests: XCTestCase {
         XCTAssertEqual(roi.height, 0.8, accuracy: 0.001)
     }
 
+    /// A macro close-up fills the frame with crumb, so the detected slice covers
+    /// everything and there is no crust ring to remove. Trimming here would discard
+    /// real crumb and measure a different field of view than the user selected.
+    func testCrustTrimmedROILeavesWholeFrameSliceUntrimmed() {
+        let roi = GridSlicer.crustTrimmedROI(
+            from: CGRect(x: 0, y: 0, width: 1, height: 1),
+            imageWidth: 790,
+            imageHeight: 528
+        )
+
+        XCTAssertEqual(roi.origin.x, 0, accuracy: 0.001)
+        XCTAssertEqual(roi.origin.y, 0, accuracy: 0.001)
+        XCTAssertEqual(roi.width, 1, accuracy: 0.001)
+        XCTAssertEqual(roi.height, 1, accuracy: 0.001)
+    }
+
+    /// Just below the whole-frame threshold the trim must still happen, so the close-up
+    /// fix cannot quietly disable crust removal for slices that really do have a ring.
+    func testCrustTrimmedROIStillTrimsWhenASurroundIsVisible() {
+        let roi = GridSlicer.crustTrimmedROI(
+            from: CGRect(x: 0.01, y: 0.01, width: 0.96, height: 0.96),
+            imageWidth: 790,
+            imageHeight: 528
+        )
+
+        XCTAssertLessThan(roi.width, 0.96)
+        XCTAssertLessThan(roi.height, 0.96)
+        XCTAssertGreaterThan(roi.origin.x, 0.01)
+        XCTAssertGreaterThan(roi.origin.y, 0.01)
+    }
+
     func testDetectSliceROIPrefersLargestBrightComponent() throws {
         var pixels = [UInt8](repeating: 25, count: 120 * 120)
 
