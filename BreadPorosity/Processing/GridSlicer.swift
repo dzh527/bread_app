@@ -24,9 +24,15 @@ struct CellRegion {
 enum GridSlicer {
     private static let minimumCellDimension = 48
     private static let minimumTrimmedROIDimension = 24
-    /// Normalized coverage above which a detected slice ROI is treated as filling the
-    /// frame outright — i.e. there is no surround, so there is no crust ring to remove.
-    private static let wholeFrameCoverageThreshold: CGFloat = 0.98
+    /// A crust ring is *darker* than the crumb it surrounds, so the trim is applied only
+    /// when the band it would remove is measurably darker than the interior.
+    ///
+    /// Coverage cannot decide this. A macro close-up and a whole slice filling its cell
+    /// both report a detected slice ROI of ~100%, and they need opposite treatment.
+    /// Ring contrast separates them cleanly: measured across a real 4x6 grid, the 24
+    /// cells that have crust came in at +42..+72 grey levels, while two close-ups with no
+    /// crust came in at -0.5 and +1.3.
+    private static let crustRingContrastThreshold = 12.0
 
     static func sliceCells(
         imageWidth: Int,
@@ -218,27 +224,11 @@ enum GridSlicer {
         imageWidth: Int,
         imageHeight: Int,
         trimFraction: CGFloat = 0.11,
-        minimumTrimPixels: Int = 6
+        minimumTrimPixels: Int = 6,
+        sourceImage: GrayscaleImage? = nil
     ) -> CGRect {
         guard imageWidth > 0, imageHeight > 0 else {
             return CGRect(x: 0, y: 0, width: 1, height: 1)
-        }
-
-        // A slice that already fills the frame has no surround, so there is no crust
-        // ring to remove — trimming would only discard real crumb. That is the macro
-        // close-up case, where the frame is crumb edge to edge and the 11% inset was
-        // throwing away ~39% of the area while measuring a different field of view than
-        // the one the user selected.
-        //
-        // A *failed* detection is a different situation and arrives as `nil`; it keeps
-        // the ring-trimming fallback below, because with no detected slice there is no
-        // evidence either way and the previous heuristic is the safer default.
-        if let sliceROINormalized {
-            let detected = sliceROINormalized.clampedToUnit(minSize: 0.05)
-            if detected.width >= wholeFrameCoverageThreshold,
-               detected.height >= wholeFrameCoverageThreshold {
-                return detected
-            }
         }
 
         let imageBounds = CGRect(x: 0, y: 0, width: CGFloat(imageWidth), height: CGFloat(imageHeight))
@@ -260,13 +250,63 @@ enum GridSlicer {
         let insetX = min(requestedInsetX, maxInsetX)
         let insetY = min(requestedInsetY, maxInsetY)
 
+        // Trim only when there is a crust ring to remove. Without an image to judge that
+        // from, keep the historical unconditional trim.
+        if let sourceImage,
+           sourceImage.width == imageWidth,
+           sourceImage.height == imageHeight,
+           insetX > 0,
+           insetY > 0,
+           !hasDarkerSurroundingBand(sourceImage, roi: sourceROI, insetX: insetX, insetY: insetY) {
+            return normalizedROI(sourceROI, in: imageBounds)
+        }
+
         let trimmedROI = sourceROI.insetBy(dx: CGFloat(insetX), dy: CGFloat(insetY))
-        return CGRect(
-            x: trimmedROI.minX / CGFloat(imageWidth),
-            y: trimmedROI.minY / CGFloat(imageHeight),
-            width: trimmedROI.width / CGFloat(imageWidth),
-            height: trimmedROI.height / CGFloat(imageHeight)
+        return normalizedROI(trimmedROI, in: imageBounds)
+    }
+
+    private static func normalizedROI(_ rect: CGRect, in bounds: CGRect) -> CGRect {
+        CGRect(
+            x: rect.minX / bounds.width,
+            y: rect.minY / bounds.height,
+            width: rect.width / bounds.width,
+            height: rect.height / bounds.height
         ).clampedToUnit(minSize: 0.05)
+    }
+
+    /// Is the band the trim would remove measurably darker than the interior it keeps?
+    private static func hasDarkerSurroundingBand(
+        _ image: GrayscaleImage,
+        roi: CGRect,
+        insetX: Int,
+        insetY: Int
+    ) -> Bool {
+        let interior = roi.insetBy(dx: CGFloat(insetX), dy: CGFloat(insetY))
+        let minX = max(0, Int(roi.minX))
+        let maxX = min(image.width, Int(roi.maxX))
+        let minY = max(0, Int(roi.minY))
+        let maxY = min(image.height, Int(roi.maxY))
+        guard minX < maxX, minY < maxY else { return false }
+
+        var bandSum = 0.0, bandCount = 0.0
+        var innerSum = 0.0, innerCount = 0.0
+        for y in minY..<maxY {
+            for x in minX..<maxX {
+                let value = Double(image[x, y])
+                let isInterior = CGFloat(x) >= interior.minX && CGFloat(x) < interior.maxX
+                    && CGFloat(y) >= interior.minY && CGFloat(y) < interior.maxY
+                if isInterior {
+                    innerSum += value
+                    innerCount += 1
+                } else {
+                    bandSum += value
+                    bandCount += 1
+                }
+            }
+        }
+
+        guard bandCount > 0, innerCount > 0 else { return false }
+        return (innerSum / innerCount) - (bandSum / bandCount) >= crustRingContrastThreshold
     }
 
     private static func otsuThresholdValue(_ image: GrayscaleImage) -> Int {

@@ -736,6 +736,130 @@ final class PerformanceBenchmarkTests: XCTestCase {
     private static let slicePath = "/tmp/bread_slice.png"
     private static let montagePath = "/tmp/bread_comparison.png"
 
+    /// Every cell of the real grid as the app renders it, labelled, so the outlier cells
+    /// can be compared against their neighbours rather than reasoned about from numbers.
+    func testRealPhotoCellMontage() async throws {
+        guard let image = UIImage(contentsOfFile: Self.realPhotoPath) else {
+            Self.emit("  !! could not read \(Self.realPhotoPath)")
+            XCTFail("missing real photo")
+            return
+        }
+
+        let result = try await BreadAnalyzer().analyzeGrid(
+            image: image, gridSpec: GridSpec(rows: 4, columns: 6)
+        )
+
+        let mean = result.allResults.map(\.analysisResult.porosity).reduce(0, +)
+            / Double(max(1, result.allResults.count))
+        let region = result.gridRegionNormalized
+
+        Self.emit("")
+        Self.emit("=== Cell montage (real 4x6 photo) ===")
+        Self.emit(String(
+            format: "  grid region origin (%.3f, %.3f)  size %.3f x %.3f   mean porosity %.1f%%",
+            region.origin.x, region.origin.y, region.width, region.height, mean * 100
+        ))
+        Self.emit("  cell    porosity    pores   avgArea    areaCV   crumbROI   crumbROI x,y,w,h")
+
+        var panels: [OverlayPanel] = []
+        for cell in result.allResults {
+            let roi = cell.crumbROINormalized
+            let marker = abs(cell.analysisResult.porosity - mean) > 0.03 ? "  <-- outlier" : ""
+            Self.emit(String(
+                format: "  %@    %8.1f%%  %6d   %7.1f   %6.2f   %8d   %.2f,%.2f,%.2f,%.2f%@",
+                cell.cellIndex.label, cell.analysisResult.porosity * 100,
+                cell.analysisResult.poreCount, cell.analysisResult.averagePoreArea,
+                cell.analysisResult.poreAreaCV, cell.crumbROIArea,
+                roi.origin.x, roi.origin.y, roi.width, roi.height, marker
+            ))
+            panels.append(OverlayPanel(
+                caption: String(
+                    format: "%@  %.1f%%  %dp  cv%.2f",
+                    cell.cellIndex.label, cell.analysisResult.porosity * 100,
+                    cell.analysisResult.poreCount, cell.analysisResult.poreAreaCV
+                ),
+                overlay: cell.analysisResult.overlayImage
+            ))
+        }
+
+        let montage = Self.composeMontage(panels: panels, columns: 6)
+        if let png = montage.pngData() {
+            try png.write(to: URL(fileURLWithPath: "/tmp/bread_cells.png"))
+            Self.emit("  montage -> /tmp/bread_cells.png")
+        }
+    }
+
+    /// Would an intensity test separate "there is a crust ring" from "there is not"?
+    ///
+    /// ROI coverage cannot: a macro close-up and a whole-slice-fills-its-cell both report
+    /// ~100%, and they need opposite treatment. The ring the trim removes is crust, which
+    /// is *darker* than crumb, so this reports how much darker the outer band is than the
+    /// interior, for every cell of a real grid and for the two close-ups.
+    func testCrustBandContrast() async throws {
+        Self.emit("")
+        Self.emit("=== Outer-band vs interior contrast (grey levels) ===")
+        Self.emit("  positive = band is darker than interior, i.e. a crust ring is present")
+
+        func report(_ grayscale: GrayscaleImage, label: String) {
+            let sliceROI = GridSlicer.detectSliceROI(in: grayscale)
+            let sourceROI = (sliceROI ?? CGRect(x: 0, y: 0, width: 1, height: 1))
+                .clampedToUnit(minSize: 0.05)
+                .denormalized(in: CGRect(x: 0, y: 0, width: grayscale.width, height: grayscale.height))
+                .integral
+            let insetX = max(6, Int(sourceROI.width * 0.11))
+            let insetY = max(6, Int(sourceROI.height * 0.11))
+            let interior = sourceROI.insetBy(dx: CGFloat(insetX), dy: CGFloat(insetY))
+
+            var bandSum = 0.0, bandCount = 0.0
+            var innerSum = 0.0, innerCount = 0.0
+            for y in Int(sourceROI.minY)..<Int(sourceROI.maxY) {
+                for x in Int(sourceROI.minX)..<Int(sourceROI.maxX) {
+                    guard x >= 0, x < grayscale.width, y >= 0, y < grayscale.height else { continue }
+                    let value = Double(grayscale[x, y])
+                    if interior.contains(CGPoint(x: CGFloat(x) + 0.5, y: CGFloat(y) + 0.5)) {
+                        innerSum += value; innerCount += 1
+                    } else {
+                        bandSum += value; bandCount += 1
+                    }
+                }
+            }
+            guard bandCount > 0, innerCount > 0 else { return }
+            let contrast = (innerSum / innerCount) - (bandSum / bandCount)
+            Self.emit(String(
+                format: "  %-34@  sliceROI %.2f x %.2f   contrast %+7.1f",
+                label as NSString,
+                sliceROI?.width ?? 1, sliceROI?.height ?? 1, contrast
+            ))
+        }
+
+        if let photo = UIImage(contentsOfFile: Self.realPhotoPath) {
+            let input = try AnalysisImageFactory.makeInput(from: photo, maxDimension: Self.processingDimension)
+            let frame = input.grayscale
+            let region = (GridSlicer.detectGridContentROI(in: frame)
+                ?? CGRect(x: 0, y: 0, width: 1, height: 1)).clampedToUnit(minSize: 0.05)
+            let cells = try GridSlicer.sliceCells(
+                imageWidth: frame.width, imageHeight: frame.height,
+                gridSpec: GridSpec(rows: 4, columns: 6), boundsNormalized: region
+            )
+            for row in 0..<4 {
+                for column in 0..<6 {
+                    let cell = cells[row][column]
+                    report(
+                        frame.cropped(to: cell.pixelRect),
+                        label: "grid cell \(cell.cellIndex.label)\(cell.cellIndex.label == "R3C3" ? " (broke)" : "")"
+                    )
+                }
+            }
+        }
+
+        for (label, path) in [("close-up A", "/tmp/bread_closeup_a.png"),
+                              ("close-up B", "/tmp/bread_closeup_b.jpg")] {
+            guard let image = UIImage(contentsOfFile: path) else { continue }
+            let input = try AnalysisImageFactory.makeInput(from: image, maxDimension: Self.processingDimension)
+            report(input.grayscale, label: label)
+        }
+    }
+
     private static let realPhotoPath = "/tmp/bread_real_photo.jpg"
 
     private static func loadRealPhoto() -> UIImage? {

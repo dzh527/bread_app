@@ -112,7 +112,8 @@ struct BreadAnalyzer: BreadAnalyzing {
                 let crumbROI = GridSlicer.crustTrimmedROI(
                     from: detectedSliceROI,
                     imageWidth: cellGrayscale.width,
-                    imageHeight: cellGrayscale.height
+                    imageHeight: cellGrayscale.height,
+                    sourceImage: cellGrayscale
                 )
                 let cellImage = cropUIImage(fullInput.displayImage, to: cellRect)
 

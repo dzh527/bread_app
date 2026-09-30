@@ -163,14 +163,23 @@ final class GridSlicerTests: XCTestCase {
         XCTAssertEqual(roi.height, 0.8, accuracy: 0.001)
     }
 
-    /// A macro close-up fills the frame with crumb, so the detected slice covers
-    /// everything and there is no crust ring to remove. Trimming here would discard
-    /// real crumb and measure a different field of view than the user selected.
-    func testCrustTrimmedROILeavesWholeFrameSliceUntrimmed() {
+    /// A macro close-up is crumb edge to edge: the region a crust trim would remove is
+    /// crumb, so it is no darker than the interior and nothing should be trimmed.
+    ///
+    /// Note the coverage is *identical* to the whole-slice case below (both fill the
+    /// frame), which is why the decision is made on intensity rather than coverage.
+    func testCrustTrimmedROILeavesCrustFreeFramesUntrimmed() {
+        let side = 400
+        let uniformCrumb = GrayscaleImage(
+            width: side, height: side,
+            pixels: [UInt8](repeating: 200, count: side * side)
+        )
+
         let roi = GridSlicer.crustTrimmedROI(
             from: CGRect(x: 0, y: 0, width: 1, height: 1),
-            imageWidth: 790,
-            imageHeight: 528
+            imageWidth: side,
+            imageHeight: side,
+            sourceImage: uniformCrumb
         )
 
         XCTAssertEqual(roi.origin.x, 0, accuracy: 0.001)
@@ -179,19 +188,48 @@ final class GridSlicerTests: XCTestCase {
         XCTAssertEqual(roi.height, 1, accuracy: 0.001)
     }
 
-    /// Just below the whole-frame threshold the trim must still happen, so the close-up
-    /// fix cannot quietly disable crust removal for slices that really do have a ring.
-    func testCrustTrimmedROIStillTrimsWhenASurroundIsVisible() {
+    /// A slice that fills its cell still has a crust ring, and the ring is darker than
+    /// the crumb. That is the R3C3 case: coverage alone says "fills the frame, nothing to
+    /// trim", which silently swallowed its crust and halved its reported porosity.
+    func testCrustTrimmedROITrimsWhenTheBandIsDarker() {
+        let side = 400
+        var pixels = [UInt8](repeating: 210, count: side * side)
+        for y in 0..<side {
+            for x in 0..<side {
+                let edgeDistance = min(min(x, y), min(side - 1 - x, side - 1 - y))
+                if edgeDistance < 40 {
+                    pixels[(y * side) + x] = 150
+                }
+            }
+        }
+        let crusted = GrayscaleImage(width: side, height: side, pixels: pixels)
+
         let roi = GridSlicer.crustTrimmedROI(
-            from: CGRect(x: 0.01, y: 0.01, width: 0.96, height: 0.96),
-            imageWidth: 790,
-            imageHeight: 528
+            from: CGRect(x: 0, y: 0, width: 1, height: 1),
+            imageWidth: side,
+            imageHeight: side,
+            sourceImage: crusted
         )
 
-        XCTAssertLessThan(roi.width, 0.96)
-        XCTAssertLessThan(roi.height, 0.96)
-        XCTAssertGreaterThan(roi.origin.x, 0.01)
-        XCTAssertGreaterThan(roi.origin.y, 0.01)
+        XCTAssertLessThan(roi.width, 1.0)
+        XCTAssertLessThan(roi.height, 1.0)
+        XCTAssertGreaterThan(roi.origin.x, 0)
+        XCTAssertGreaterThan(roi.origin.y, 0)
+        XCTAssertEqual(roi.midX, 0.5, accuracy: 0.01)
+        XCTAssertEqual(roi.midY, 0.5, accuracy: 0.01)
+    }
+
+    /// Without an image there is no way to judge a ring, so the historical unconditional
+    /// trim is kept. This is what the pure-geometry callers rely on.
+    func testCrustTrimmedROIWithoutAnImageKeepsTrimming() {
+        let roi = GridSlicer.crustTrimmedROI(
+            from: CGRect(x: 0, y: 0, width: 1, height: 1),
+            imageWidth: 100,
+            imageHeight: 80
+        )
+
+        XCTAssertLessThan(roi.width, 1.0)
+        XCTAssertLessThan(roi.height, 1.0)
     }
 
     func testDetectSliceROIPrefersLargestBrightComponent() throws {
