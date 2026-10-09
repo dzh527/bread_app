@@ -108,9 +108,10 @@ struct BreadAnalyzer: BreadAnalyzing {
                     continue
                 }
 
-                let detectedSliceROI = GridSlicer.detectSliceROI(in: cellGrayscale)
+                let detectedSlice = GridSlicer.detectSlice(in: cellGrayscale)
                 let crumbROI = GridSlicer.crustTrimmedROI(
-                    from: detectedSliceROI,
+                    from: detectedSlice?.roi,
+                    sliceMask: detectedSlice?.mask,
                     imageWidth: cellGrayscale.width,
                     imageHeight: cellGrayscale.height,
                     sourceImage: cellGrayscale

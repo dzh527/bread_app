@@ -309,11 +309,13 @@ final class MeasurementQualityTests: XCTestCase {
             let sliceInput = try AnalysisImageFactory.makeInput(from: slice, maxDimension: 1400)
             reportCoverage(sliceInput.grayscale, label: "real slice, +crust, full frame")
 
-            let sliceROI = GridSlicer.detectSliceROI(in: sliceInput.grayscale)
+            let detectedSlice = GridSlicer.detectSlice(in: sliceInput.grayscale)
             let crumbROI = GridSlicer.crustTrimmedROI(
-                from: sliceROI,
+                from: detectedSlice?.roi,
+                sliceMask: detectedSlice?.mask,
                 imageWidth: sliceInput.grayscale.width,
-                imageHeight: sliceInput.grayscale.height
+                imageHeight: sliceInput.grayscale.height,
+                sourceImage: sliceInput.grayscale
             )
             let bounds = CGRect(x: 0, y: 0, width: sliceInput.grayscale.width, height: sliceInput.grayscale.height)
             let crumbRect = crumbROI.clampedToUnit(minSize: 0.05).denormalized(in: bounds).integral

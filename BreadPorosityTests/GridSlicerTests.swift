@@ -232,6 +232,183 @@ final class GridSlicerTests: XCTestCase {
         XCTAssertLessThan(roi.height, 1.0)
     }
 
+    /// Illumination falloff alone darkens a frame's outer band, and by an amount that
+    /// scales with the exposure: against the old absolute margin this crumb scored 7.2 at
+    /// level 120 and was kept, exactly 12.0 at 200 and 16.8 at 280 — the last two
+    /// trimmed. The smooth field is now extrapolated from the interior and taken out of
+    /// the comparison, so a falloff cannot spend the margin at any level.
+    ///
+    /// This is the macro close-up of a vignetted frame: crumb edge to edge, no crust,
+    /// and it must come back untrimmed at every exposure.
+    func testCrustTrimmedROISkipsTrimUnderCameraFalloff() {
+        let side = 400
+        let center = Double(side) / 2
+        let maximumDistance = (center * center * 2).squareRoot()
+
+        for crumbLevel in [120, 200, 280] {
+            var pixels = [UInt8](repeating: 0, count: side * side)
+            for y in 0..<side {
+                for x in 0..<side {
+                    let dx = Double(x) + 0.5 - center
+                    let dy = Double(y) + 0.5 - center
+                    let normalizedDistance = (dx * dx + dy * dy).squareRoot() / maximumDistance
+                    let value = Double(crumbLevel) * (1 - 0.18 * normalizedDistance * normalizedDistance)
+                    pixels[(y * side) + x] = UInt8(clamping: Int(value.rounded()))
+                }
+            }
+            let vignetted = GrayscaleImage(width: side, height: side, pixels: pixels)
+
+            let roi = GridSlicer.crustTrimmedROI(
+                from: CGRect(x: 0, y: 0, width: 1, height: 1),
+                imageWidth: side,
+                imageHeight: side,
+                sourceImage: vignetted
+            )
+
+            XCTAssertEqual(roi.width, 1, accuracy: 0.001, "crumb level \(crumbLevel)")
+            XCTAssertEqual(roi.height, 1, accuracy: 0.001, "crumb level \(crumbLevel)")
+        }
+    }
+
+    /// The mirror image of the falloff test: a real crust ring is a step, and it must be
+    /// trimmed at every exposure, not just the bright ones. Crust is set at 70% of the
+    /// crumb level so the step's *relative* size is constant while its absolute size
+    /// moves with the level.
+    func testCrustTrimmedROITrimsCrustAtEveryExposure() {
+        let side = 400
+
+        for crumbLevel in [150, 210, 280] {
+            let crustLevel = UInt8(clamping: Int(Double(crumbLevel) * 0.7))
+            var pixels = [UInt8](repeating: UInt8(clamping: crumbLevel), count: side * side)
+            for y in 0..<side {
+                for x in 0..<side {
+                    let edgeDistance = min(min(x, y), min(side - 1 - x, side - 1 - y))
+                    if edgeDistance < 40 {
+                        pixels[(y * side) + x] = crustLevel
+                    }
+                }
+            }
+            let crusted = GrayscaleImage(width: side, height: side, pixels: pixels)
+
+            let roi = GridSlicer.crustTrimmedROI(
+                from: CGRect(x: 0, y: 0, width: 1, height: 1),
+                imageWidth: side,
+                imageHeight: side,
+                sourceImage: crusted
+            )
+
+            XCTAssertLessThan(roi.width, 1.0, "crumb level \(crumbLevel)")
+            XCTAssertLessThan(roi.height, 1.0, "crumb level \(crumbLevel)")
+        }
+    }
+
+    /// The detector's search padding is not bread. A crust-free slice on a dark bench
+    /// comes with a padding ring that is ~20% of the band, dragging the band's mean far
+    /// enough below the interior to be read as crust — and trimming 11% per side of a
+    /// slice that has none. With the mask the band is measured over the slice itself.
+    func testCrustTrimmedROIIgnoresTheDetectorsPaddingRing() throws {
+        let side = 233
+        let sliceSide = 200
+        var pixels = [UInt8](repeating: 30, count: side * side)
+        for y in 16..<(16 + sliceSide) {
+            for x in 16..<(16 + sliceSide) {
+                pixels[(y * side) + x] = 200
+            }
+        }
+        let cell = GrayscaleImage(width: side, height: side, pixels: pixels)
+
+        let slice = try XCTUnwrap(GridSlicer.detectSlice(in: cell))
+        XCTAssertGreaterThan(slice.roi.width, CGFloat(sliceSide) / CGFloat(side), "ROI should carry padding")
+
+        let crumbROI = GridSlicer.crustTrimmedROI(
+            from: slice.roi,
+            sliceMask: slice.mask,
+            imageWidth: side,
+            imageHeight: side,
+            sourceImage: cell
+        )
+
+        XCTAssertEqual(crumbROI.width, slice.roi.width, accuracy: 0.001)
+        XCTAssertEqual(crumbROI.height, slice.roi.height, accuracy: 0.001)
+    }
+
+    /// A round slice does not fill its bounding box, so the box corners — bench, or a
+    /// pale tray — sit in the band without being crust. Judged over the box they can
+    /// outvote a real crust ring (brighter corners push the band mean *up*, and the trim
+    /// is skipped, which is the R3C3 failure from the other side); judged over the slice
+    /// they cannot vote at all.
+    func testCrustTrimmedROIJudgesARoundSliceOnItsCrustNotItsCorners() throws {
+        let side = 400
+        let radius = 170.0
+        let center = Double(side) / 2
+
+        func disc(crustDepth: Double) -> GrayscaleImage {
+            var pixels = [UInt8](repeating: 30, count: side * side)
+            for y in 0..<side {
+                for x in 0..<side {
+                    let dx = Double(x) + 0.5 - center
+                    let dy = Double(y) + 0.5 - center
+                    let distance = (dx * dx + dy * dy).squareRoot()
+                    if distance < radius {
+                        pixels[(y * side) + x] = distance >= radius - crustDepth ? 130 : 200
+                    }
+                }
+            }
+            return GrayscaleImage(width: side, height: side, pixels: pixels)
+        }
+
+        let crusted = disc(crustDepth: 20)
+        let crustedSlice = try XCTUnwrap(GridSlicer.detectSlice(in: crusted))
+        let crustedROI = GridSlicer.crustTrimmedROI(
+            from: crustedSlice.roi,
+            sliceMask: crustedSlice.mask,
+            imageWidth: side,
+            imageHeight: side,
+            sourceImage: crusted
+        )
+        XCTAssertLessThan(crustedROI.width, crustedSlice.roi.width, "round slice with a crust ring must trim")
+
+        let bare = disc(crustDepth: 0)
+        let bareSlice = try XCTUnwrap(GridSlicer.detectSlice(in: bare))
+        let bareROI = GridSlicer.crustTrimmedROI(
+            from: bareSlice.roi,
+            sliceMask: bareSlice.mask,
+            imageWidth: side,
+            imageHeight: side,
+            sourceImage: bare
+        )
+        XCTAssertEqual(bareROI.width, bareSlice.roi.width, accuracy: 0.001)
+        XCTAssertEqual(bareROI.height, bareSlice.roi.height, accuracy: 0.001)
+    }
+
+    /// A slice ROI too thin to inset in Y used to skip the gate altogether (the old
+    /// condition required both insets to be non-zero) and trim the surviving axis with
+    /// no evidence — exactly the crust-free input the gate exists to protect. The band
+    /// is well defined as long as one axis has one: the strips the trim would remove.
+    func testCrustTrimmedROIJudgesTheBandAlongTheOnlyTrimmedAxis() throws {
+        let width = 233
+        let height = 242
+        var pixels = [UInt8](repeating: 30, count: width * height)
+        for y in 114..<128 {
+            for x in 2..<230 {
+                pixels[(y * width) + x] = 200
+            }
+        }
+        let cell = GrayscaleImage(width: width, height: height, pixels: pixels)
+
+        let slice = try XCTUnwrap(GridSlicer.detectSlice(in: cell))
+        let crumbROI = GridSlicer.crustTrimmedROI(
+            from: slice.roi,
+            sliceMask: slice.mask,
+            imageWidth: width,
+            imageHeight: height,
+            sourceImage: cell
+        )
+
+        XCTAssertEqual(crumbROI.width, slice.roi.width, accuracy: 0.001)
+        XCTAssertEqual(crumbROI.height, slice.roi.height, accuracy: 0.001)
+    }
+
     func testDetectSliceROIPrefersLargestBrightComponent() throws {
         var pixels = [UInt8](repeating: 25, count: 120 * 120)
 

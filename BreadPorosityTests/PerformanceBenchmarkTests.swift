@@ -172,11 +172,14 @@ final class PerformanceBenchmarkTests: XCTestCase {
 
         // The cell crop and crust trim that `analyzeGridSynchronously` performs.
         let wholeCell = input.grayscale
-        let sliceROI = GridSlicer.detectSliceROI(in: wholeCell)
+        let detectedSlice = GridSlicer.detectSlice(in: wholeCell)
+        let sliceROI = detectedSlice?.roi
         let crumbROI = GridSlicer.crustTrimmedROI(
             from: sliceROI,
+            sliceMask: detectedSlice?.mask,
             imageWidth: wholeCell.width,
-            imageHeight: wholeCell.height
+            imageHeight: wholeCell.height,
+            sourceImage: wholeCell
         )
         let crumbRect = crumbROI
             .clampedToUnit(minSize: 0.05)
@@ -334,9 +337,13 @@ final class PerformanceBenchmarkTests: XCTestCase {
         // A middle cell, so it is a whole slice rather than a partial one.
         let region = regions[spec.rows / 2][spec.columns / 2]
         let cell = wholeFrame.cropped(to: region.pixelRect)
-        let sliceROI = GridSlicer.detectSliceROI(in: cell)
+        let detectedSlice = GridSlicer.detectSlice(in: cell)
         let crumbROI = GridSlicer.crustTrimmedROI(
-            from: sliceROI, imageWidth: cell.width, imageHeight: cell.height
+            from: detectedSlice?.roi,
+            sliceMask: detectedSlice?.mask,
+            imageWidth: cell.width,
+            imageHeight: cell.height,
+            sourceImage: cell
         )
         let crumbRect = crumbROI
             .clampedToUnit(minSize: 0.05)
@@ -416,9 +423,13 @@ final class PerformanceBenchmarkTests: XCTestCase {
         }
 
         let cellGrayscale = fullFrame.cropped(to: cellRect)
-        let sliceROI = GridSlicer.detectSliceROI(in: cellGrayscale)
+        let detectedSlice = GridSlicer.detectSlice(in: cellGrayscale)
         let crumbROI = GridSlicer.crustTrimmedROI(
-            from: sliceROI, imageWidth: cellGrayscale.width, imageHeight: cellGrayscale.height
+            from: detectedSlice?.roi,
+            sliceMask: detectedSlice?.mask,
+            imageWidth: cellGrayscale.width,
+            imageHeight: cellGrayscale.height,
+            sourceImage: cellGrayscale
         )
 
         // Exactly what analyzeSynchronously then processes.
@@ -491,11 +502,13 @@ final class PerformanceBenchmarkTests: XCTestCase {
                     }
 
                     let cellGrayscale = fullFrame.cropped(to: cellRect)
-                    let sliceROI = GridSlicer.detectSliceROI(in: cellGrayscale)
+                    let detectedSlice = GridSlicer.detectSlice(in: cellGrayscale)
                     let crumbROI = GridSlicer.crustTrimmedROI(
-                        from: sliceROI,
+                        from: detectedSlice?.roi,
+                        sliceMask: detectedSlice?.mask,
                         imageWidth: cellGrayscale.width,
-                        imageHeight: cellGrayscale.height
+                        imageHeight: cellGrayscale.height,
+                        sourceImage: cellGrayscale
                     )
                     // Held constant across scales, exactly as BreadAnalyzer computes it.
                     let minPoreArea = max(24, cellGrayscale.pixelCount / 2500)
@@ -587,9 +600,14 @@ final class PerformanceBenchmarkTests: XCTestCase {
 
         let input = try AnalysisImageFactory.makeInput(from: slice, maxDimension: Self.processingDimension)
         let wholeFrame = input.grayscale
-        let sliceROI = GridSlicer.detectSliceROI(in: wholeFrame)
+        let detectedSlice = GridSlicer.detectSlice(in: wholeFrame)
+        let sliceROI = detectedSlice?.roi
         let crumbROI = GridSlicer.crustTrimmedROI(
-            from: sliceROI, imageWidth: wholeFrame.width, imageHeight: wholeFrame.height
+            from: sliceROI,
+            sliceMask: detectedSlice?.mask,
+            imageWidth: wholeFrame.width,
+            imageHeight: wholeFrame.height,
+            sourceImage: wholeFrame
         )
         Self.emit("")
         Self.emit("=== Visual comparison on the single slice ===")
@@ -789,46 +807,37 @@ final class PerformanceBenchmarkTests: XCTestCase {
         }
     }
 
-    /// Would an intensity test separate "there is a crust ring" from "there is not"?
+    /// What does the crust gate itself measure, cell by cell?
     ///
-    /// ROI coverage cannot: a macro close-up and a whole-slice-fills-its-cell both report
-    /// ~100%, and they need opposite treatment. The ring the trim removes is crust, which
-    /// is *darker* than crumb, so this reports how much darker the outer band is than the
-    /// interior, for every cell of a real grid and for the two close-ups.
+    /// ROI coverage cannot separate "there is a crust ring" from "there is not": a macro
+    /// close-up and a whole-slice-fills-its-cell both report ~100%, and they need
+    /// opposite treatment. The ring the trim removes is crust, which is *darker* than
+    /// crumb — but the raw band-versus-interior difference also carries the frame's
+    /// smooth illumination and whatever the band crosses besides bread. This reports what
+    /// the gate actually reports: the illumination the interior predicts for the band,
+    /// and the step left over after subtracting it, for every cell of a real grid and
+    /// for the two close-ups. It is the gate's own measure, so it cannot describe a
+    /// different decision than the app makes.
     func testCrustBandContrast() async throws {
         Self.emit("")
-        Self.emit("=== Outer-band vs interior contrast (grey levels) ===")
-        Self.emit("  positive = band is darker than interior, i.e. a crust ring is present")
+        Self.emit("=== Crust band step vs its predicted illumination (grey levels) ===")
+        Self.emit("  step = predicted - band; positive = the band is a step darker, i.e. a crust ring")
 
         func report(_ grayscale: GrayscaleImage, label: String) {
-            let sliceROI = GridSlicer.detectSliceROI(in: grayscale)
-            let sourceROI = (sliceROI ?? CGRect(x: 0, y: 0, width: 1, height: 1))
-                .clampedToUnit(minSize: 0.05)
-                .denormalized(in: CGRect(x: 0, y: 0, width: grayscale.width, height: grayscale.height))
-                .integral
-            let insetX = max(6, Int(sourceROI.width * 0.11))
-            let insetY = max(6, Int(sourceROI.height * 0.11))
-            let interior = sourceROI.insetBy(dx: CGFloat(insetX), dy: CGFloat(insetY))
-
-            var bandSum = 0.0, bandCount = 0.0
-            var innerSum = 0.0, innerCount = 0.0
-            for y in Int(sourceROI.minY)..<Int(sourceROI.maxY) {
-                for x in Int(sourceROI.minX)..<Int(sourceROI.maxX) {
-                    guard x >= 0, x < grayscale.width, y >= 0, y < grayscale.height else { continue }
-                    let value = Double(grayscale[x, y])
-                    if interior.contains(CGPoint(x: CGFloat(x) + 0.5, y: CGFloat(y) + 0.5)) {
-                        innerSum += value; innerCount += 1
-                    } else {
-                        bandSum += value; bandCount += 1
-                    }
-                }
+            guard let slice = GridSlicer.detectSlice(in: grayscale) else {
+                Self.emit(String(format: "  %-34@  no slice detected", label as NSString))
+                return
             }
-            guard bandCount > 0, innerCount > 0 else { return }
-            let contrast = (innerSum / innerCount) - (bandSum / bandCount)
+            guard let measured = GridSlicer.crustBandMeasurement(for: slice, in: grayscale) else {
+                Self.emit(String(format: "  %-34@  nothing to measure", label as NSString))
+                return
+            }
             Self.emit(String(
-                format: "  %-34@  sliceROI %.2f x %.2f   contrast %+7.1f",
+                format: "  %-34@  roi %.2f x %.2f  interior %5.1f  band %5.1f  predicted %5.1f  step %+6.1f  -> %@",
                 label as NSString,
-                sliceROI?.width ?? 1, sliceROI?.height ?? 1, contrast
+                slice.roi.width, slice.roi.height,
+                measured.interiorMean, measured.bandMean, measured.bandPredictedFromInterior,
+                measured.crustStep, measured.holdsCrustRing ? "trim" : "keep"
             ))
         }
 
