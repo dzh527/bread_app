@@ -466,6 +466,99 @@ final class MeasurementQualityTests: XCTestCase {
         }
     }
 
+    // MARK: - Downsampling sensitivity
+
+    /// One scene, many resolutions: the same phantom, downsampled.
+    ///
+    /// True porosity is an area fraction and cannot move when pixels are merged, so any
+    /// movement in the reading is resolution, not bread. Two structures are swept because
+    /// the pipeline's floors are absolute pixel counts (morphology kernel, min-area) — if
+    /// the cost of downsampling lands on small pores first, the bias tracks crumb
+    /// fineness, which is the kind of bias that does *not* cancel in a comparison.
+    ///
+    /// Parameters mirror what the app actually runs (adaptive, k 0.34, kernel 5,
+    /// min-area ratio 1/10,000), with `roiMode: .fullImage` so the region analysed is
+    /// exactly the phantom and the answer key is exact.
+    func testDownsamplingSensitivity() async throws {
+        report.emit("")
+        report.emit("=== Downsampling: one scene, many resolutions (truth constant at 10%) ===")
+
+        func measureImage(_ image: UIImage) async throws -> BreadAnalysisResult {
+            var parameters = AnalysisParameters()
+            parameters.thresholdMode = .adaptive
+            parameters.sauvolaK = 0.34
+            parameters.thresholdBias = 0
+            parameters.morphologyKernelSize = 5
+            parameters.minPoreArea = 24
+            parameters.minPoreAreaRatio = 1.0 / 10_000
+            parameters.roiMode = .fullImage
+            parameters.roiRectNormalized = nil
+            return try await BreadAnalyzer().analyze(image: image, parameters: parameters)
+        }
+
+        func resized(_ image: UIImage, longestSide: Int) -> UIImage {
+            let source = image.size
+            let factor = Double(longestSide) / Double(max(source.width, source.height))
+            let target = CGSize(
+                width: (source.width * factor).rounded(),
+                height: (source.height * factor).rounded()
+            )
+            let format = UIGraphicsImageRendererFormat.default()
+            format.scale = 1
+            return UIGraphicsImageRenderer(size: target, format: format).image { context in
+                context.cgContext.interpolationQuality = .high
+                image.draw(in: CGRect(origin: .zero, size: target))
+            }
+        }
+
+        // Above the pipeline's own 1400 cap, a pre-downsample only changes *which* pass
+        // does the resampling — the pipeline caps to 1400 either way. Radii chosen so the
+        // capped image matches the coarse 1400 phantom below.
+        let big = PhantomFactory.make(
+            width: 2800, height: 2800, targetPorosity: 0.10, poreRadius: 24...60, seed: 0xD05A
+        )
+        report.emit("")
+        report.emit("  above the cap — \(big.note)")
+        let direct = try await measureImage(big.image)
+        let preDownsampled = try await measureImage(resized(big.image, longestSide: 1400))
+        report.emit(String(
+            format: "  2800 fed directly (pipeline caps to 1400)   porosity %6.2f%%  pores %5d  avgArea %7.1f",
+            direct.porosity * 100, direct.poreCount, direct.averagePoreArea
+        ))
+        report.emit(String(
+            format: "  2800 pre-downsampled to 1400                 porosity %6.2f%%  pores %5d  avgArea %7.1f",
+            preDownsampled.porosity * 100, preDownsampled.poreCount, preDownsampled.averagePoreArea
+        ))
+
+        let structures: [(String, ClosedRange<Double>)] = [
+            ("coarse  r 12-30", 12...30),
+            ("fine    r  5-14", 5...14)
+        ]
+
+        for (label, radius) in structures {
+            let phantom = PhantomFactory.make(
+                width: 1400, height: 1400, targetPorosity: 0.10, poreRadius: radius, seed: 0x5CA1E
+            )
+            report.emit("")
+            report.emit("  \(label) — \(phantom.note)")
+            report.emit("     side   analysed px   minArea   measured %   err pp   pores   avgArea px2")
+
+            for side in [1400, 1000, 700, 500, 350] {
+                let image = side == 1400 ? phantom.image : resized(phantom.image, longestSide: side)
+                let analysed = try AnalysisImageFactory.makeInput(from: image, maxDimension: 1400)
+                let minArea = max(24, Int(Double(analysed.grayscale.pixelCount) / 10_000))
+                let result = try await measureImage(image)
+                report.emit(String(
+                    format: "   %5d   %10d   %7d   %9.2f   %+6.2f   %5d   %11.1f",
+                    side, analysed.grayscale.pixelCount, minArea,
+                    result.porosity * 100,
+                    (result.porosity - phantom.truePorosity) * 100,
+                    result.poreCount, result.averagePoreArea
+                ))
+            }
+        }
+    }
+
     private func measure(
         _ phantom: Phantom,
         sauvolaK: Double,
