@@ -1,5 +1,5 @@
 import XCTest
-@testable import BreadPorosity
+@testable import CrumbScope
 
 final class GridSlicerTests: XCTestCase {
     func testSliceCellsDividesImageCorrectly() throws {

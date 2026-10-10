@@ -1,6 +1,6 @@
 import UIKit
 import XCTest
-@testable import BreadPorosity
+@testable import CrumbScope
 
 final class BreadAnalyzerTests: XCTestCase {
     func testAnalyzeDetectsLargeDarkPoreCluster() async throws {

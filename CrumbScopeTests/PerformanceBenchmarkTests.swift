@@ -1,17 +1,17 @@
 import UIKit
 import XCTest
-@testable import BreadPorosity
+@testable import CrumbScope
 
 /// Performance benchmarks for the porosity pipeline.
 ///
 /// These are measurements, not correctness tests, and they are slow. Keep them out
 /// of routine runs:
 ///
-///     xcodebuild test ... -skip-testing:BreadPorosityTests/PerformanceBenchmarkTests
+///     xcodebuild test ... -skip-testing:CrumbScopeTests/PerformanceBenchmarkTests
 ///
 /// Run only these:
 ///
-///     xcodebuild test ... -only-testing:BreadPorosityTests/PerformanceBenchmarkTests
+///     xcodebuild test ... -only-testing:CrumbScopeTests/PerformanceBenchmarkTests
 ///
 /// Coverage instrumentation (`-profile-coverage-mapping`) is on by default in this
 /// project's test action and adds measurable overhead to every basic block, so

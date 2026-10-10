@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		7A4D0E5B2F8C100100000001 /* BreadPorosityApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000101 /* BreadPorosityApp.swift */; };
+		7A4D0E5B2F8C100100000001 /* CrumbScopeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000101 /* CrumbScopeApp.swift */; };
 		7A4D0E5B2F8C100100000002 /* AppContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000102 /* AppContainerView.swift */; };
 		7A4D0E5B2F8C100100000005 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000105 /* ImagePicker.swift */; };
 		7A4D0E5B2F8C100100000006 /* AnalysisModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4D0E5B2F8C100100000106 /* AnalysisModels.swift */; };
@@ -40,19 +40,19 @@
 			containerPortal = 7A4D0E5B2F8C100100000403 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 7A4D0E5B2F8C100100000401;
-			remoteInfo = BreadPorosity;
+			remoteInfo = CrumbScope;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		7A4D0E5B2F8C100100000101 /* BreadPorosityApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadPorosityApp.swift; sourceTree = "<group>"; };
+		7A4D0E5B2F8C100100000101 /* CrumbScopeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrumbScopeApp.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C100100000102 /* AppContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainerView.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C100100000105 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C100100000106 /* AnalysisModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisModels.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C100100000107 /* BreadAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadAnalyzer.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C100100000108 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7A4D0E5B2F8C100100000109 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		7A4D0E5B2F8C10010000010A /* BreadPorosity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BreadPorosity.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7A4D0E5B2F8C10010000010A /* CrumbScope.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CrumbScope.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7A4D0E5B2F8C10010000010B /* ImageTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageTypes.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C10010000010C /* ImageProcessingPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageProcessingPipeline.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C10010000010D /* MaskRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaskRenderer.swift; sourceTree = "<group>"; };
@@ -61,7 +61,7 @@
 		7A4D0E5B2F8C100100000110 /* ImageProcessingPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageProcessingPipelineTests.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C100100000111 /* BreadAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreadAnalyzerTests.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C100100000112 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
-		7A4D0E5B2F8C100100000113 /* BreadPorosityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BreadPorosityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7A4D0E5B2F8C100100000113 /* CrumbScopeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CrumbScopeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7A4D0E5B2F8C100100000114 /* GridAnalysisModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridAnalysisModels.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C100100000115 /* GridSlicer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridSlicer.swift; sourceTree = "<group>"; };
 		7A4D0E5B2F8C100100000116 /* GridOverlayRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridOverlayRenderer.swift; sourceTree = "<group>"; };
@@ -97,14 +97,14 @@
 		7A4D0E5B2F8C100100000301 = {
 			isa = PBXGroup;
 			children = (
-				7A4D0E5B2F8C100100000302 /* BreadPorosity */,
-				7A4D0E5B2F8C10010000030A /* BreadPorosityTests */,
+				7A4D0E5B2F8C100100000302 /* CrumbScope */,
+				7A4D0E5B2F8C10010000030A /* CrumbScopeTests */,
 				7A4D0E5B2F8C100100000309 /* Products */,
 				DA8F33892FA4F4050015FA08 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
-		7A4D0E5B2F8C100100000302 /* BreadPorosity */ = {
+		7A4D0E5B2F8C100100000302 /* CrumbScope */ = {
 			isa = PBXGroup;
 			children = (
 				7A4D0E5B2F8C100100000303 /* App */,
@@ -113,13 +113,13 @@
 				7A4D0E5B2F8C100100000307 /* Processing */,
 				7A4D0E5B2F8C100100000308 /* Resources */,
 			);
-			path = BreadPorosity;
+			path = CrumbScope;
 			sourceTree = "<group>";
 		};
 		7A4D0E5B2F8C100100000303 /* App */ = {
 			isa = PBXGroup;
 			children = (
-				7A4D0E5B2F8C100100000101 /* BreadPorosityApp.swift */,
+				7A4D0E5B2F8C100100000101 /* CrumbScopeApp.swift */,
 				7A4D0E5B2F8C100100000102 /* AppContainerView.swift */,
 			);
 			path = App;
@@ -177,13 +177,13 @@
 		7A4D0E5B2F8C100100000309 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				7A4D0E5B2F8C10010000010A /* BreadPorosity.app */,
-				7A4D0E5B2F8C100100000113 /* BreadPorosityTests.xctest */,
+				7A4D0E5B2F8C10010000010A /* CrumbScope.app */,
+				7A4D0E5B2F8C100100000113 /* CrumbScopeTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		7A4D0E5B2F8C10010000030A /* BreadPorosityTests */ = {
+		7A4D0E5B2F8C10010000030A /* CrumbScopeTests */ = {
 			isa = PBXGroup;
 			children = (
 				7A4D0E5B2F8C10010000010F /* AnalysisImageFactoryTests.swift */,
@@ -195,7 +195,7 @@
 				DA8F33892FA4F4050015FA21 /* PhantomFactory.swift */,
 				DA8F33892FA4F4050015FA23 /* MeasurementQualityTests.swift */,
 			);
-			path = BreadPorosityTests;
+			path = CrumbScopeTests;
 			sourceTree = "<group>";
 		};
 		7A4D0E5B2F8C10010000030B /* GridAnalysis */ = {
@@ -219,9 +219,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		7A4D0E5B2F8C100100000401 /* BreadPorosity */ = {
+		7A4D0E5B2F8C100100000401 /* CrumbScope */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 7A4D0E5B2F8C100100000503 /* Build configuration list for PBXNativeTarget "BreadPorosity" */;
+			buildConfigurationList = 7A4D0E5B2F8C100100000503 /* Build configuration list for PBXNativeTarget "CrumbScope" */;
 			buildPhases = (
 				7A4D0E5B2F8C100100000202 /* Sources */,
 				7A4D0E5B2F8C100100000201 /* Frameworks */,
@@ -231,14 +231,14 @@
 			);
 			dependencies = (
 			);
-			name = BreadPorosity;
-			productName = BreadPorosity;
-			productReference = 7A4D0E5B2F8C10010000010A /* BreadPorosity.app */;
+			name = CrumbScope;
+			productName = CrumbScope;
+			productReference = 7A4D0E5B2F8C10010000010A /* CrumbScope.app */;
 			productType = "com.apple.product-type.application";
 		};
-		7A4D0E5B2F8C100100000402 /* BreadPorosityTests */ = {
+		7A4D0E5B2F8C100100000402 /* CrumbScopeTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 7A4D0E5B2F8C100100000504 /* Build configuration list for PBXNativeTarget "BreadPorosityTests" */;
+			buildConfigurationList = 7A4D0E5B2F8C100100000504 /* Build configuration list for PBXNativeTarget "CrumbScopeTests" */;
 			buildPhases = (
 				7A4D0E5B2F8C100100000205 /* Sources */,
 				7A4D0E5B2F8C100100000204 /* Frameworks */,
@@ -249,9 +249,9 @@
 			dependencies = (
 				7A4D0E5B2F8C100100000702 /* PBXTargetDependency */,
 			);
-			name = BreadPorosityTests;
-			productName = BreadPorosityTests;
-			productReference = 7A4D0E5B2F8C100100000113 /* BreadPorosityTests.xctest */;
+			name = CrumbScopeTests;
+			productName = CrumbScopeTests;
+			productReference = 7A4D0E5B2F8C100100000113 /* CrumbScopeTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -273,7 +273,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 7A4D0E5B2F8C100100000501 /* Build configuration list for PBXProject "BreadPorosity" */;
+			buildConfigurationList = 7A4D0E5B2F8C100100000501 /* Build configuration list for PBXProject "CrumbScope" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -286,8 +286,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				7A4D0E5B2F8C100100000401 /* BreadPorosity */,
-				7A4D0E5B2F8C100100000402 /* BreadPorosityTests */,
+				7A4D0E5B2F8C100100000401 /* CrumbScope */,
+				7A4D0E5B2F8C100100000402 /* CrumbScopeTests */,
 			);
 		};
 /* End PBXProject section */
@@ -315,7 +315,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7A4D0E5B2F8C100100000001 /* BreadPorosityApp.swift in Sources */,
+				7A4D0E5B2F8C100100000001 /* CrumbScopeApp.swift in Sources */,
 				7A4D0E5B2F8C100100000002 /* AppContainerView.swift in Sources */,
 				7A4D0E5B2F8C100100000005 /* ImagePicker.swift in Sources */,
 				7A4D0E5B2F8C100100000006 /* AnalysisModels.swift in Sources */,
@@ -353,7 +353,7 @@
 /* Begin PBXTargetDependency section */
 		7A4D0E5B2F8C100100000702 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 7A4D0E5B2F8C100100000401 /* BreadPorosity */;
+			target = 7A4D0E5B2F8C100100000401 /* CrumbScope */;
 			targetProxy = 7A4D0E5B2F8C100100000701 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -413,18 +413,18 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"BreadPorosity/Resources/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"CrumbScope/Resources/Preview Content\"";
 				DEVELOPMENT_TEAM = 2TFM3F3694;
 				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = BreadPorosity/Resources/Info.plist;
+				INFOPLIST_FILE = CrumbScope/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.dingzhao.BreadPorosity;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dingzhao.CrumbScope;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -441,17 +441,17 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"BreadPorosity/Resources/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"CrumbScope/Resources/Preview Content\"";
 				DEVELOPMENT_TEAM = 2TFM3F3694;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = BreadPorosity/Resources/Info.plist;
+				INFOPLIST_FILE = CrumbScope/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.dingzhao.BreadPorosity;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dingzhao.CrumbScope;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -475,14 +475,14 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.BreadPorosityTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.CrumbScopeTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BreadPorosity.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BreadPorosity";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CrumbScope.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/CrumbScope";
 			};
 			name = Debug;
 		};
@@ -500,21 +500,21 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.BreadPorosityTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.CrumbScopeTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BreadPorosity.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BreadPorosity";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CrumbScope.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/CrumbScope";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		7A4D0E5B2F8C100100000501 /* Build configuration list for PBXProject "BreadPorosity" */ = {
+		7A4D0E5B2F8C100100000501 /* Build configuration list for PBXProject "CrumbScope" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				7A4D0E5B2F8C100100000601 /* Debug */,
@@ -523,7 +523,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		7A4D0E5B2F8C100100000503 /* Build configuration list for PBXNativeTarget "BreadPorosity" */ = {
+		7A4D0E5B2F8C100100000503 /* Build configuration list for PBXNativeTarget "CrumbScope" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				7A4D0E5B2F8C100100000603 /* Debug */,
@@ -532,7 +532,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		7A4D0E5B2F8C100100000504 /* Build configuration list for PBXNativeTarget "BreadPorosityTests" */ = {
+		7A4D0E5B2F8C100100000504 /* Build configuration list for PBXNativeTarget "CrumbScopeTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				7A4D0E5B2F8C100100000605 /* Debug */,

@@ -1,6 +1,6 @@
 import UIKit
 import XCTest
-@testable import BreadPorosity
+@testable import CrumbScope
 
 /// Controls that decide whether the porosity number is a measurement at all.
 ///
@@ -10,7 +10,7 @@ import XCTest
 ///
 /// Run with:
 ///
-///     xcodebuild test ... -only-testing:BreadPorosityTests/MeasurementQualityTests
+///     xcodebuild test ... -only-testing:CrumbScopeTests/MeasurementQualityTests
 ///
 /// The report lands at `/tmp/bread_quality_report.txt`.
 final class MeasurementQualityTests: XCTestCase {

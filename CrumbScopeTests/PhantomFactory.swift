@@ -1,6 +1,6 @@
 import CoreGraphics
 import UIKit
-@testable import BreadPorosity
+@testable import CrumbScope
 
 /// A synthetic crumb with an **exact** known pore area.
 ///

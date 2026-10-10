@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct BreadPorosityApp: App {
+struct CrumbScopeApp: App {
     var body: some Scene {
         WindowGroup {
             AppContainerView()
