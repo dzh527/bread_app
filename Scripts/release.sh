@@ -52,6 +52,17 @@ if [ -n "${ASC_KEY_PATH:-}" ]; then
         -authenticationKeyIssuerID "$ASC_ISSUER_ID")
 fi
 
+# Every upload needs a build number the store has not seen, so `upload` bumps it
+# first. The bump lands in the project file — commit it, or the repo stops
+# matching what shipped. `archive` and `export` leave the number alone; they are
+# local checks and bumping them would just create noise.
+if [ "$STEP" = "upload" ]; then
+  BEFORE=$(sed -n 's/.*CURRENT_PROJECT_VERSION = \(.*\);/\1/p' CrumbScope.xcodeproj/project.pbxproj | head -1)
+  xcrun agvtool next-version -all > /dev/null
+  AFTER=$(sed -n 's/.*CURRENT_PROJECT_VERSION = \(.*\);/\1/p' CrumbScope.xcodeproj/project.pbxproj | head -1)
+  echo "==> build number $BEFORE -> $AFTER (commit CrumbScope.xcodeproj)"
+fi
+
 echo "==> archiving (unsigned — see the note at the top of this script)"
 rm -rf "$ARCHIVE_PATH"
 xcodebuild archive \

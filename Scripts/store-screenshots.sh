@@ -2,7 +2,7 @@
 #
 # Captures the App Store screenshot set on a 6.9" simulator, headlessly.
 #
-#     Scripts/store-screenshots.sh [photo] [output directory]
+#     Scripts/store-screenshots.sh [photo] [output directory] [grid, e.g. 4x6]
 #
 # The app is driven through the Debug-only `-demoImage` / `-demoAnalyze` launch
 # arguments (see GridAnalysisViewModel), because `simctl` cannot synthesise touches
@@ -17,10 +17,10 @@ cd "$(dirname "$0")/.."
 
 PHOTO="${1:-}"
 OUT="${2:-.screenshots}"
+GRID="${3:-4x6}"
 DEVICE_NAME="CrumbScope Screenshots"
 DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro-Max"
 RUNTIME="com.apple.CoreSimulator.SimRuntime.iOS-26-3"
-BUNDLE_ID="com.dingzhao.CrumbScope"
 APP=".derivedData/Build/Products/Debug-iphonesimulator/CrumbScope.app"
 
 if [ -z "$PHOTO" ]; then
@@ -46,6 +46,11 @@ xcodebuild -project CrumbScope.xcodeproj -scheme CrumbScope \
   > /tmp/crumbscope_screenshots_build.log 2>&1
 xcrun simctl install "$UDID" "$APP"
 
+# Read the bundle id off the app that was just installed rather than repeating it
+# here. It was hard-coded once, and when the project moved to a new bundle id the
+# script kept installing the new build while launching the stale one.
+BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Info.plist")
+
 capture() {
   local name="$1" settle="$2"
   shift 2
@@ -59,7 +64,7 @@ capture() {
 
 echo "capturing to $OUT — photo: $PHOTO"
 capture 1-home     4
-capture 2-preview  6 -demoImage "$PHOTO"
-capture 3-analysis 30 -demoImage "$PHOTO" -demoAnalyze
-capture 4-results  30 -demoImage "$PHOTO" -demoAnalyze -demoScrollToResults
+capture 2-preview  6 -demoImage "$PHOTO" -demoGrid "$GRID"
+capture 3-analysis 30 -demoImage "$PHOTO" -demoGrid "$GRID" -demoAnalyze
+capture 4-results  30 -demoImage "$PHOTO" -demoGrid "$GRID" -demoAnalyze -demoScrollToResults
 echo "done"

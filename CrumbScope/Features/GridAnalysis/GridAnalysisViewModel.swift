@@ -41,6 +41,18 @@ final class GridAnalysisViewModel: ObservableObject {
             return
         }
 
+        // `-demoGrid RxC`, so a screenshot can be taken with the grid the photo
+        // actually has — an overlay cutting through the wrong slices would
+        // misrepresent what the app does.
+        if let gridIndex = arguments.firstIndex(of: "-demoGrid"), gridIndex + 1 < arguments.count {
+            let parts = arguments[gridIndex + 1].lowercased().split(separator: "x")
+            if parts.count == 2,
+               let rows = Int(parts[0]), let columns = Int(parts[1]),
+               rows > 0, columns > 0 {
+                gridSpec = GridSpec(rows: rows, columns: columns)
+            }
+        }
+
         selectedImage = image.normalizedOrientationForAnalysis()
         roiEditedSinceSelection = false
         roiDetectionID = UUID()
