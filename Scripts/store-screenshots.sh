@@ -18,8 +18,12 @@ cd "$(dirname "$0")/.."
 PHOTO="${1:-}"
 OUT="${2:-.screenshots}"
 GRID="${3:-4x6}"
-DEVICE_NAME="CrumbScope Screenshots"
-DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro-Max"
+# App Store Connect's screenshot slot is the "medium display" one and lists
+# 2556x1179 / 1179x2556 / 2622x1206 / 1206x2622 as its sizes — a 6.9" Pro Max
+# capture (1320x2868) is not among them. The plain iPhone 17 renders 1206x2622,
+# which is.
+DEVICE_NAME="CrumbScope Screenshots 6.3"
+DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-17"
 RUNTIME="com.apple.CoreSimulator.SimRuntime.iOS-26-3"
 APP=".derivedData/Build/Products/Debug-iphonesimulator/CrumbScope.app"
 
