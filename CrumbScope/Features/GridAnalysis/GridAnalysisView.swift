@@ -13,18 +13,31 @@ struct GridAnalysisView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    sourceSection
-                    gridSpecSection
-                    previewSection
-                    analysisSection
-                    if viewModel.gridResult != nil {
-                        resultsSection
-                        columnSummarySection
+            ScrollViewReader { scrollProxy in
+                ScrollView {
+                    VStack(spacing: 20) {
+                        sourceSection
+                        gridSpecSection
+                        previewSection
+                        analysisSection
+                        if viewModel.gridResult != nil {
+                            resultsSection.id(Self.resultsAnchor)
+                            columnSummarySection
+                        }
                     }
+                    .padding(20)
                 }
-                .padding(20)
+                .onChange(of: viewModel.gridResult?.allResults.count) { _, count in
+                    #if DEBUG
+                    // Screenshot hook: the matrix sits below the fold and `simctl`
+                    // cannot scroll. Same launch-argument family as the demo image —
+                    // see Scripts/store-screenshots.sh. No effect without the flag.
+                    if count != nil,
+                       ProcessInfo.processInfo.arguments.contains("-demoScrollToResults") {
+                        scrollProxy.scrollTo(Self.resultsAnchor, anchor: .top)
+                    }
+                    #endif
+                }
             }
             .navigationTitle("Grid Analysis")
             .sheet(isPresented: $viewModel.isShowingCamera) {
@@ -191,6 +204,8 @@ struct GridAnalysisView: View {
         }
         .gridCardStyle()
     }
+
+    private static let resultsAnchor = "results"
 
     private var resultsSection: some View {
         VStack(alignment: .leading, spacing: 14) {

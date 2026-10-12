@@ -9,6 +9,9 @@ DerivedData/
 .derivedData/
 build/
 
+# Store screenshot artifacts (regenerate with Scripts/store-screenshots.sh)
+.screenshots/
+
 # Swift Package Manager
 .build/
 

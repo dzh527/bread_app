@@ -20,7 +20,43 @@ final class GridAnalysisViewModel: ObservableObject {
 
     init(analyzer: any BreadAnalyzing = BreadAnalyzer()) {
         self.analyzer = analyzer
+        #if DEBUG
+        loadDemoImageIfRequested()
+        #endif
     }
+
+    #if DEBUG
+    /// Store-screenshot hook: `-demoImage <path>` preloads a photo, and `-demoAnalyze`
+    /// additionally runs the analysis — the two states the App Store screenshots need.
+    /// `simctl` cannot synthesise touches, so a launch argument is the only way to
+    /// reach a populated screen headlessly. Debug-only: the shipping build has no
+    /// such path (`Scripts/store-screenshots.sh` drives it).
+    private func loadDemoImageIfRequested() {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard
+            let flagIndex = arguments.firstIndex(of: "-demoImage"),
+            flagIndex + 1 < arguments.count,
+            let image = UIImage(contentsOfFile: arguments[flagIndex + 1])
+        else {
+            return
+        }
+
+        selectedImage = image.normalizedOrientationForAnalysis()
+        roiEditedSinceSelection = false
+        roiDetectionID = UUID()
+        gridResult = nil
+        alertMessage = nil
+        let detectionID = roiDetectionID
+        let shouldAnalyze = arguments.contains("-demoAnalyze")
+
+        Task {
+            await detectGridROI(detectionID: detectionID)
+            if shouldAnalyze {
+                await analyzeGrid()
+            }
+        }
+    }
+    #endif
 
     var cameraAvailable: Bool {
         UIImagePickerController.isSourceTypeAvailable(.camera)
